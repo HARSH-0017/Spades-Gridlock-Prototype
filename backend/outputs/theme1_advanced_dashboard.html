@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GridLock Parking Intelligence</title>
+  <style>
+    :root {
+      --bg: #eef3f7;
+      --surface: #ffffff;
+      --ink: #17212b;
+      --muted: #617181;
+      --line: #d6dee7;
+      --teal: #0f766e;
+      --teal-2: #14b8a6;
+      --amber: #b45309;
+      --red: #b91c1c;
+      --blue: #1d4ed8;
+      --soft: #e7f7f5;
+      --shadow: 0 12px 30px rgba(22, 34, 51, 0.10);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    header {
+      background: #102027;
+      color: #fff;
+      padding: 22px 28px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      border-bottom: 4px solid var(--teal-2);
+    }
+    h1, h2, h3, p { margin: 0; letter-spacing: 0; }
+    h1 { font-size: 26px; }
+    header p { color: #cfe1e7; margin-top: 6px; }
+    .badge {
+      background: rgba(20, 184, 166, 0.16);
+      border: 1px solid rgba(20, 184, 166, 0.5);
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: #d9fffb;
+      font-size: 13px;
+    }
+    main {
+      padding: 22px 28px 34px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 18px;
+    }
+    aside, section, .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    aside {
+      padding: 16px;
+      position: sticky;
+      top: 14px;
+      height: max-content;
+    }
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin: 14px 0 6px;
+      text-transform: uppercase;
+    }
+    select, input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 14px;
+      background: white;
+      color: var(--ink);
+    }
+    .content {
+      display: grid;
+      gap: 18px;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .metric-card {
+      padding: 16px;
+      min-height: 96px;
+    }
+    .metric-value {
+      font-size: 27px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .metric-label {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    section { padding: 18px; }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    h2 { font-size: 18px; }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 6px;
+      padding: 9px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    button.active {
+      background: var(--teal);
+      color: white;
+      border-color: var(--teal);
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .map-wrap {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #f4fbfa, #ffffff);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    svg { width: 100%; height: auto; display: block; }
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: -1px;
+      background: var(--teal);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      background: #f7f9fb;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .table-scroll { max-height: 480px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+    .pill {
+      display: inline-block;
+      padding: 4px 7px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: var(--soft);
+      color: var(--teal);
+      white-space: nowrap;
+    }
+    .critical { background: #fee2e2; color: var(--red); }
+    .high { background: #ffedd5; color: var(--amber); }
+    .medium { background: #dbeafe; color: var(--blue); }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 140px 1fr 74px;
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+    .bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-track { height: 12px; background: #e7edf3; border-radius: 999px; overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--teal); }
+    .bar-value { color: var(--muted); text-align: right; }
+    .insight-list {
+      display: grid;
+      gap: 10px;
+    }
+    .insight {
+      border-left: 4px solid var(--teal);
+      padding: 10px 12px;
+      background: #f7fbfa;
+      border-radius: 6px;
+      color: #26333d;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .small-note { color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .hidden { display: none; }
+    @media (max-width: 1100px) {
+      main, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      aside { position: static; }
+      .metrics { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      header { grid-template-columns: 1fr; padding: 18px; }
+      main { padding: 16px; }
+      .metrics { grid-template-columns: 1fr; }
+      .bar-row { grid-template-columns: 100px 1fr 58px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>GridLock Parking Intelligence</h1>
+      <p>AI-assisted hotspot detection, patrol planning, and temporal validation for parking-induced congestion.</p>
+    </div>
+    <div class="badge">Hackathon MVP &middot; Bengaluru parking violations &middot; IST-ready recommendations</div>
+  </header>
+  <main>
+    <aside>
+      <h2>Control Room</h2>
+      <label for="stationFilter">Police Station</label>
+      <select id="stationFilter">
+        <option value="All">All stations</option>
+        <option value="Adugodi">Adugodi</option>
+<option value="Ashok Nagar">Ashok Nagar</option>
+<option value="Banashankari">Banashankari</option>
+<option value="Basavanagudi">Basavanagudi</option>
+<option value="Byatarayanapura">Byatarayanapura</option>
+<option value="Chamarajpet">Chamarajpet</option>
+<option value="Chikkajala">Chikkajala</option>
+<option value="City Market">City Market</option>
+<option value="Cubbon Park">Cubbon Park</option>
+<option value="HAL Old Airport">HAL Old Airport</option>
+<option value="Hebbala">Hebbala</option>
+<option value="High ground">High ground</option>
+<option value="Jayanagara">Jayanagara</option>
+<option value="Jeevanbheemanagar">Jeevanbheemanagar</option>
+<option value="K.R. Pura">K.R. Pura</option>
+<option value="Kodigehalli">Kodigehalli</option>
+<option value="Madiwala">Madiwala</option>
+<option value="Magadi Road">Magadi Road</option>
+<option value="Mahadevapura">Mahadevapura</option>
+<option value="Malleshwaram">Malleshwaram</option>
+<option value="Mico Layout">Mico Layout</option>
+<option value="Rajajinagar">Rajajinagar</option>
+<option value="Sheshadripuram">Sheshadripuram</option>
+<option value="Shivajinagar">Shivajinagar</option>
+<option value="Upparpet">Upparpet</option>
+<option value="Vijayanagara">Vijayanagara</option>
+<option value="Wilson Garden">Wilson Garden</option>
+      </select>
+      <label for="bandFilter">Priority Band</label>
+      <select id="bandFilter">
+        <option value="All">All bands</option>
+        <option value="Critical">Critical</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Watch">Watch</option>
+      </select>
+      <label for="searchBox">Search Area</label>
+      <input id="searchBox" placeholder="Junction, road, station">
+      <label for="topLimit">Visible Areas</label>
+      <select id="topLimit">
+        <option value="15">Top 15</option>
+        <option value="30">Top 30</option>
+        <option value="50">Top 50</option>
+        <option value="100">Top 100</option>
+      </select>
+      <div style="height:16px"></div>
+      <button id="resetBtn" style="width:100%">Reset Filters</button>
+      <div style="height:16px"></div>
+      <p class="small-note">Operational impact combines hotspot risk quality with total recurring burden. Use the filters to create a station-level deployment view.</p>
+    </aside>
+
+    <div class="content">
+      <div class="metrics">
+        <div class="metric-card"><div class="metric-value" id="metricRecords">-</div><div class="metric-label">Records in selected enforcement areas</div></div>
+        <div class="metric-card"><div class="metric-value" id="metricAreas">-</div><div class="metric-label">Filtered enforcement areas</div></div>
+        <div class="metric-card"><div class="metric-value">0.6</div><div class="metric-label">Temporal Precision@20</div></div>
+        <div class="metric-card"><div class="metric-value">24.9%</div><div class="metric-label">Holdout violation share captured by top 50 cells</div></div>
+      </div>
+
+      <div class="grid-3">
+        <div class="metric-card"><div class="metric-value">2</div><div class="metric-label">Critical areas citywide</div></div>
+        <div class="metric-card"><div class="metric-value">36</div><div class="metric-label">Suggested units for top 15 areas</div></div>
+        <div class="metric-card"><div class="metric-value">35</div><div class="metric-label">Station-time deployment groups</div></div>
+      </div>
+
+      <section>
+        <div class="section-head">
+          <h2>Command Map</h2>
+          <div class="tabs">
+            <button class="active" data-view="map">Map</button>
+            <button data-view="plan">Action Plan</button>
+            <button data-view="validation">Validation</button>
+          </div>
+        </div>
+        <div id="mapView">
+          <div class="grid-2">
+            <div>
+              <div class="map-wrap">
+                <svg id="hotspotMap" viewBox="0 0 820 460" aria-label="Hotspot map"></svg>
+              </div>
+              <div class="legend">
+                <span>Circle size = violation burden</span>
+                <span>Color depth = operational impact</span>
+              </div>
+            </div>
+            <div class="insight-list" id="insights"></div>
+          </div>
+        </div>
+        <div id="planView" class="hidden">
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Band</th><th>Station</th><th>Window</th><th>Units</th><th>Intervention</th><th>Location</th></tr></thead>
+              <tbody id="planRows"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="validationView" class="hidden">
+          <div class="grid-2">
+            <div class="insight-list">
+              <div class="insight"><b>Temporal holdout:</b> last 30 days are treated as future records.</div>
+              <div class="insight"><b>Precision@10:</b> 0.6 with 6 hits.</div>
+              <div class="insight"><b>Precision@50:</b> 0.72; top 50 captured 0.2495 of holdout violations.</div>
+            </div>
+            <div>
+              <h3>Validation Window</h3>
+              <p class="small-note">Training records: 244,238<br>Holdout records: 54,212<br>Cutoff date: 2024-03-09<br>Test end date: 2024-04-08</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Ranked Enforcement Areas</h2>
+          <p class="small-note">Click a station on the map table by filtering in the control room.</p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Rank</th><th>Station</th><th>Impact</th><th>Records</th><th>Window</th><th>Junction</th><th>Main Violations</th></tr></thead>
+            <tbody id="areaRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <section>
+          <h2>Station Load</h2>
+          <div id="stationBars"></div>
+        </section>
+        <section>
+          <h2>Peak Time Windows</h2>
+          <div id="timeBars"></div>
+        </section>
+      </div>
+
+      <section>
+        <div class="section-head">
+          <h2>Station Shift Deployment Plan</h2>
+          <p class="small-note">Aggregates top action areas by police station and recommended time window.</p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Station</th><th>Time Window</th><th>Areas</th><th>Covered Records</th><th>Suggested Units</th></tr></thead>
+            <tbody id="shiftRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const areas = [{"area_rank": "1", "center_lat": "12.981893", "center_lon": "77.607786", "zone_count": "20", "records": "19384", "max_active_days": "149", "area_priority_score_0_100": "52.28", "operational_impact_score_0_100": "71.12", "primary_police_station": "Shivajinagar", "primary_junction": "BTP051 - Safina Plaza Junction", "recommended_time_window_IST": "10:00-10:59", "top_violations": "WRONG PARKING (11492); NO PARKING (7928); DEFECTIVE NUMBER PLATE (486)", "top_vehicle_types": "PASSENGER AUTO (7549); SCOOTER (5713); CAR (3525)", "representative_location": "Kamaraj Road, Sri Nagamma Devi Circle, Sivanchetti Gardens, Bengaluru, Karnataka. Pin-560042 (India)"}, {"area_rank": "2", "center_lat": "12.976259", "center_lon": "77.577259", "zone_count": "51", "records": "35809", "max_active_days": "146", "area_priority_score_0_100": "47.29", "operational_impact_score_0_100": "71.01", "primary_police_station": "Upparpet", "primary_junction": "BTP040 - Elite Junction", "recommended_time_window_IST": "09:00-09:59", "top_violations": "WRONG PARKING (18884); NO PARKING (16974); DEFECTIVE NUMBER PLATE (616)", "top_vehicle_types": "SCOOTER (11558); CAR (11134); MOTOR CYCLE (3327)", "representative_location": "5th Main Road, Kempe Gowda Circle, Gandhi Nagar, Bengaluru, Karnataka. Pin-560009 (India)"}, {"area_rank": "3", "center_lat": "12.964706", "center_lon": "77.577935", "zone_count": "25", "records": "15913", "max_active_days": "149", "area_priority_score_0_100": "48.81", "operational_impact_score_0_100": "68.37", "primary_police_station": "City Market", "primary_junction": "BTP082 - KR Market Junction", "recommended_time_window_IST": "00:00-00:59", "top_violations": "WRONG PARKING (12099); NO PARKING (3900); PARKING IN A MAIN ROAD (772)", "top_vehicle_types": "SCOOTER (6383); PASSENGER AUTO (2640); CAR (2233)", "representative_location": "KR Main Road, City Market Circle, Bengaluru, Karnataka. Pin-560002 (India)"}, {"area_rank": "4", "center_lat": "13.071", "center_lon": "77.588", "zone_count": "1", "records": "3280", "max_active_days": "115", "area_priority_score_0_100": "52.32", "operational_impact_score_0_100": "63.52", "primary_police_station": "Kodigehalli", "primary_junction": "No Junction", "recommended_time_window_IST": "11:00-11:59", "top_violations": "WRONG PARKING (2397); NO PARKING (883); DEFECTIVE NUMBER PLATE (147)", "top_vehicle_types": "SCOOTER (2107); MOTOR CYCLE (965); CAR (186)", "representative_location": "Sahakar Nagar Road, Fortuna Acacia, Byatarayanapura, Bengaluru, Karnataka. Pin-560092 (India)"}, {"area_rank": "5", "center_lat": "12.933585", "center_lon": "77.691", "zone_count": "2", "records": "5718", "max_active_days": "85", "area_priority_score_0_100": "46.32", "operational_impact_score_0_100": "62.6", "primary_police_station": "HAL Old Airport", "primary_junction": "No Junction", "recommended_time_window_IST": "04:00-04:59", "top_violations": "NO PARKING (3389); WRONG PARKING (2522); PARKING IN A MAIN ROAD (1180)", "top_vehicle_types": "SCOOTER (3290); MOTOR CYCLE (1834); CAR (310)", "representative_location": "New Horizon College Road, New Horizon College of Engineering, Kadubisanahalli, Bengaluru, Karnataka. Pin-560103 (India)"}, {"area_rank": "6", "center_lat": "12.999183", "center_lon": "77.550004", "zone_count": "18", "records": "7719", "max_active_days": "120", "area_priority_score_0_100": "38.86", "operational_impact_score_0_100": "59.79", "primary_police_station": "Malleshwaram", "primary_junction": "BTP027 - Modi Bridge Junction", "recommended_time_window_IST": "08:00-08:59", "top_violations": "WRONG PARKING (5449); NO PARKING (2277); PARKING IN A MAIN ROAD (133)", "top_vehicle_types": "SCOOTER (3321); CAR (2367); MOTOR CYCLE (1261)", "representative_location": "10th Cross Road, Block 1, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "7", "center_lat": "12.974283", "center_lon": "77.545226", "zone_count": "3", "records": "3590", "max_active_days": "99", "area_priority_score_0_100": "41.91", "operational_impact_score_0_100": "58.18", "primary_police_station": "Vijayanagara", "primary_junction": "BTP020 - Hosahalli Metro Station", "recommended_time_window_IST": "04:00-04:59", "top_violations": "WRONG PARKING (2057); NO PARKING (1543); DEFECTIVE NUMBER PLATE (74)", "top_vehicle_types": "SCOOTER (2280); MOTOR CYCLE (1143); CAR (134)", "representative_location": "Chord Road, Manuvana, Vijaya Nagar, Bengaluru, Karnataka. Pin-560040 (India)"}, {"area_rank": "8", "center_lat": "13.008", "center_lon": "77.695132", "zone_count": "3", "records": "3084", "max_active_days": "143", "area_priority_score_0_100": "42.49", "operational_impact_score_0_100": "57.85", "primary_police_station": "K.R. Pura", "primary_junction": "No Junction", "recommended_time_window_IST": "00:00-00:59", "top_violations": "WRONG PARKING (2232); NO PARKING (911); PARKING IN A MAIN ROAD (810)", "top_vehicle_types": "SCOOTER (919); PASSENGER AUTO (854); CAR (654)", "representative_location": "MBT Road, Devasandra Junction, KR Puram, Bengaluru, Karnataka. Pin-560036 (India)"}, {"area_rank": "9", "center_lat": "13.184848", "center_lon": "77.68", "zone_count": "4", "records": "3374", "max_active_days": "138", "area_priority_score_0_100": "41.77", "operational_impact_score_0_100": "57.84", "primary_police_station": "Chikkajala", "primary_junction": "No Junction", "recommended_time_window_IST": "01:00-01:59", "top_violations": "NO PARKING (2448); WRONG PARKING (936); PARKING IN A MAIN ROAD (818)", "top_vehicle_types": "CAR (2091); MAXI-CAB (1232); LGV (17)", "representative_location": "Unnamed Road, Begur Chikkanahalli, Bengaluru, Karnataka. Pin-562149 (India)"}, {"area_rank": "10", "center_lat": "13.035229", "center_lon": "77.589", "zone_count": "2", "records": "2963", "max_active_days": "126", "area_priority_score_0_100": "42.08", "operational_impact_score_0_100": "57.45", "primary_police_station": "Hebbala", "primary_junction": "No Junction", "recommended_time_window_IST": "03:00-03:59", "top_violations": "NO PARKING (2311); WRONG PARKING (652); DEFECTIVE NUMBER PLATE (214)", "top_vehicle_types": "SCOOTER (1125); MOTOR CYCLE (775); CAR (437)", "representative_location": "Bellary Road, Vinayaka Nagar, Hebbal, Bengaluru, Karnataka. Pin-560024 (India)"}, {"area_rank": "11", "center_lat": "13.008492", "center_lon": "77.554697", "zone_count": "5", "records": "3000", "max_active_days": "102", "area_priority_score_0_100": "39.09", "operational_impact_score_0_100": "55.86", "primary_police_station": "Malleshwaram", "primary_junction": "BTP001 - 10th Cross, Dr. Rajkumar Road", "recommended_time_window_IST": "10:00-10:59", "top_violations": "WRONG PARKING (1895); NO PARKING (1107); DEFECTIVE NUMBER PLATE (19)", "top_vehicle_types": "CAR (1799); SCOOTER (695); MOTOR CYCLE (269)", "representative_location": "80 Feet Ring Road, Dr Rajkumar Road 17th Cross Junction, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "12", "center_lat": "13.011727", "center_lon": "77.553121", "zone_count": "8", "records": "4440", "max_active_days": "131", "area_priority_score_0_100": "34.83", "operational_impact_score_0_100": "55.2", "primary_police_station": "Malleshwaram", "primary_junction": "No Junction", "recommended_time_window_IST": "09:00-09:59", "top_violations": "WRONG PARKING (2631); NO PARKING (1832); DEFECTIVE NUMBER PLATE (84)", "top_vehicle_types": "CAR (1793); PASSENGER AUTO (1061); SCOOTER (666)", "representative_location": "80 Feet Ring Road, Orion, Brigade Gateway, Malleshwaram West, Bengaluru, Karnataka. Pin-560055 (India)"}, {"area_rank": "13", "center_lat": "12.9735", "center_lon": "77.551", "zone_count": "2", "records": "2212", "max_active_days": "90", "area_priority_score_0_100": "40.1", "operational_impact_score_0_100": "55.11", "primary_police_station": "Magadi Road", "primary_junction": "BTP070 - Cholurpalya Junction, Magadi Road", "recommended_time_window_IST": "12:00-12:59", "top_violations": "NO PARKING (2036); WRONG PARKING (188); DEFECTIVE NUMBER PLATE (92)", "top_vehicle_types": "SCOOTER (1565); MOTOR CYCLE (555); PASSENGER AUTO (37)", "representative_location": "1st Cross Road, Mallige Thotta, Cholurpalya, Bengaluru, Karnataka. Pin-560023 (India)"}, {"area_rank": "14", "center_lat": "12.965144", "center_lon": "77.53852", "zone_count": "4", "records": "1915", "max_active_days": "79", "area_priority_score_0_100": "39.29", "operational_impact_score_0_100": "54.04", "primary_police_station": "Vijayanagara", "primary_junction": "BTP016 - 5th Main Road, RPC Layout", "recommended_time_window_IST": "11:00-11:59", "top_violations": "WRONG PARKING (1717); NO PARKING (196); PARKING IN A MAIN ROAD (33)", "top_vehicle_types": "SCOOTER (964); CAR (507); MOTOR CYCLE (298)", "representative_location": "Sri Sankasta Hara Ganapati Temple Road, RPC Layout, Vijaya Nagar Stage 2, Bengaluru, Karnataka. Pin-560104 (India)"}, {"area_rank": "15", "center_lat": "12.976909", "center_lon": "77.571", "zone_count": "4", "records": "1461", "max_active_days": "91", "area_priority_score_0_100": "40.24", "operational_impact_score_0_100": "53.41", "primary_police_station": "Chamarajpet", "primary_junction": "BTP048 - Shanthala Junction", "recommended_time_window_IST": "07:00-07:59", "top_violations": "NO PARKING (1093); WRONG PARKING (567); PARKING IN A MAIN ROAD (234)", "top_vehicle_types": "PASSENGER AUTO (1212); CAR (106); SCOOTER (78)", "representative_location": "Rao Bahadur DGT Road, Majestic Circle, Majestic, Bengaluru, Karnataka. Pin-560023 (India)"}, {"area_rank": "16", "center_lat": "12.99618", "center_lon": "77.668607", "zone_count": "4", "records": "1821", "max_active_days": "110", "area_priority_score_0_100": "37.77", "operational_impact_score_0_100": "52.99", "primary_police_station": "Mahadevapura", "primary_junction": "No Junction", "recommended_time_window_IST": "10:00-10:59", "top_violations": "WRONG PARKING (1321); PARKING IN A MAIN ROAD (1164); NO PARKING (622)", "top_vehicle_types": "PASSENGER AUTO (395); SCOOTER (257); BUS (BMTC/KSRTC) (239)", "representative_location": "Old Madras Road, Royal Heritage, Pai Layout, Mahadevapura, Bengaluru, Karnataka. Pin-560016 (India)"}, {"area_rank": "17", "center_lat": "12.944124", "center_lon": "77.571", "zone_count": "4", "records": "1650", "max_active_days": "104", "area_priority_score_0_100": "37.65", "operational_impact_score_0_100": "52.5", "primary_police_station": "Basavanagudi", "primary_junction": "BTP108 - Tagore Park Junction", "recommended_time_window_IST": "11:00-11:59", "top_violations": "WRONG PARKING (1118); NO PARKING (539); PARKING IN A MAIN ROAD (72)", "top_vehicle_types": "SCOOTER (1010); CAR (253); MOTOR CYCLE (197)", "representative_location": "Sri DV Gundappa Road, Shopper Junction, Basavanagudi, Bengaluru, Karnataka. Pin-560004 (India)"}, {"area_rank": "18", "center_lat": "12.95952", "center_lon": "77.577256", "zone_count": "5", "records": "1853", "max_active_days": "97", "area_priority_score_0_100": "36.51", "operational_impact_score_0_100": "52.37", "primary_police_station": "City Market", "primary_junction": "BTP104 - Medical College Circle", "recommended_time_window_IST": "11:00-11:59", "top_violations": "WRONG PARKING (1761); NO PARKING (141); PARKING IN A MAIN ROAD (43)", "top_vehicle_types": "SCOOTER (533); PASSENGER AUTO (248); LGV (152)", "representative_location": "Kalasipalyam Main Road, Kalasipalyam, Bengaluru, Karnataka. Pin-560002 (India)"}, {"area_rank": "19", "center_lat": "12.981208", "center_lon": "77.598501", "zone_count": "3", "records": "1951", "max_active_days": "75", "area_priority_score_0_100": "35.84", "operational_impact_score_0_100": "52.23", "primary_police_station": "Shivajinagar", "primary_junction": "BTP042 - Minsk Square Junction (CTO)", "recommended_time_window_IST": "05:00-05:59", "top_violations": "WRONG PARKING (1198); NO PARKING (753); DEFECTIVE NUMBER PLATE (60)", "top_vehicle_types": "SCOOTER (1349); MOTOR CYCLE (436); CAR (107)", "representative_location": "Cunningham Road, Mantri Altiue Apartment, Shivaji Nagar, Bengaluru, Karnataka. Pin-560001 (India)"}, {"area_rank": "20", "center_lat": "12.99245", "center_lon": "77.589", "zone_count": "4", "records": "2200", "max_active_days": "60", "area_priority_score_0_100": "32.2", "operational_impact_score_0_100": "50.74", "primary_police_station": "High ground", "primary_junction": "BTP032 - Windsor Circle", "recommended_time_window_IST": "03:00-03:59", "top_violations": "WRONG PARKING (1599); NO PARKING (603); DEFECTIVE NUMBER PLATE (57)", "top_vehicle_types": "SCOOTER (1678); MOTOR CYCLE (311); CAR (100)", "representative_location": "Palace Road, Thulasi Thottam, Vasant Nagar, Bengaluru, Karnataka. Pin-560001 (India)"}, {"area_rank": "21", "center_lat": "12.953346", "center_lon": "77.542602", "zone_count": "4", "records": "1383", "max_active_days": "92", "area_priority_score_0_100": "35.8", "operational_impact_score_0_100": "50.73", "primary_police_station": "Byatarayanapura", "primary_junction": "BTP095 - Satellite Bus Stand, Mysore Road", "recommended_time_window_IST": "01:00-01:59", "top_violations": "WRONG PARKING (931); NO PARKING (453); PARKING IN A MAIN ROAD (160)", "top_vehicle_types": "SCOOTER (500); PASSENGER AUTO (273); CAR (258)", "representative_location": "Mysore Road, Satellite Bus Stand Junction, New Timber Yard Layout, Bengaluru, Karnataka. Pin-560026 (India)"}, {"area_rank": "22", "center_lat": "12.94", "center_lon": "77.695731", "zone_count": "2", "records": "1325", "max_active_days": "40", "area_priority_score_0_100": "35.71", "operational_impact_score_0_100": "50.5", "primary_police_station": "HAL Old Airport", "primary_junction": "No Junction", "recommended_time_window_IST": "08:00-08:59", "top_violations": "WRONG PARKING (1275); PARKING IN A MAIN ROAD (1267); NO PARKING (120)", "top_vehicle_types": "CAR (880); PASSENGER AUTO (257); BUS (BMTC/KSRTC) (55)", "representative_location": "Kadubeesanahalli Underpass, Kadubisanahalli Junction, Kadubisanahalli, Bengaluru, Karnataka. Pin-560103 (India)"}, {"area_rank": "23", "center_lat": "13.00756", "center_lon": "77.571", "zone_count": "2", "records": "1563", "max_active_days": "116", "area_priority_score_0_100": "33.15", "operational_impact_score_0_100": "49.8", "primary_police_station": "Malleshwaram", "primary_junction": "No Junction", "recommended_time_window_IST": "09:00-09:59", "top_violations": "WRONG PARKING (1088); NO PARKING (479); DEFECTIVE NUMBER PLATE (13)", "top_vehicle_types": "CAR (838); SCOOTER (394); MOTOR CYCLE (211)", "representative_location": "Sri Venkataranga Ayangar Road, Malleshwaram 18th Cross Junction, Malleshwaram West, Bengaluru, Karnataka. Pin-560055 (In"}, {"area_rank": "24", "center_lat": "13.0", "center_lon": "77.677335", "zone_count": "2", "records": "1168", "max_active_days": "82", "area_priority_score_0_100": "34.47", "operational_impact_score_0_100": "49.27", "primary_police_station": "Mahadevapura", "primary_junction": "No Junction", "recommended_time_window_IST": "01:00-01:59", "top_violations": "NO PARKING (780); PARKING IN A MAIN ROAD (524); WRONG PARKING (407)", "top_vehicle_types": "PASSENGER AUTO (471); CAR (464); MAXI-CAB (113)", "representative_location": "Outer Ring Road, Venkatappa Colony, Mahadevapura, Bengaluru, Karnataka. Pin-560016 (India)"}, {"area_rank": "25", "center_lat": "12.972", "center_lon": "77.658", "zone_count": "1", "records": "1165", "max_active_days": "98", "area_priority_score_0_100": "34.44", "operational_impact_score_0_100": "49.25", "primary_police_station": "Jeevanbheemanagar", "primary_junction": "No Junction", "recommended_time_window_IST": "07:00-07:59", "top_violations": "NO PARKING (1148); PARKING NEAR BUSTOP/SCHOOL/HOSPITAL ETC (90); DEFECTIVE NUMBER PLATE (78)", "top_vehicle_types": "SCOOTER (486); CAR (319); MOTOR CYCLE (249)", "representative_location": "Pusa Thippasandra Main Road, Nada Prabhu Kempegowda Circle, New Thippasandra, Bengaluru, Karnataka. Pin-560075 (India)"}, {"area_rank": "26", "center_lat": "13.007806", "center_lon": "77.548586", "zone_count": "3", "records": "885", "max_active_days": "83", "area_priority_score_0_100": "36.5", "operational_impact_score_0_100": "49.2", "primary_police_station": "Rajajinagar", "primary_junction": "BTP023 - Mahalaxmi Layout Entrance", "recommended_time_window_IST": "10:00-10:59", "top_violations": "WRONG PARKING (716); NO PARKING (171); DEFECTIVE NUMBER PLATE (47)", "top_vehicle_types": "SCOOTER (539); MOTOR CYCLE (170); CAR (52)", "representative_location": "1st Main Road, Block 1R, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "27", "center_lat": "12.992982", "center_lon": "77.553579", "zone_count": "4", "records": "985", "max_active_days": "60", "area_priority_score_0_100": "34.78", "operational_impact_score_0_100": "48.71", "primary_police_station": "Rajajinagar", "primary_junction": "BTP011 - RR Kalyana Mantapa, Dr. Rajkumar Road", "recommended_time_window_IST": "03:00-03:59", "top_violations": "WRONG PARKING (929); NO PARKING (57); DOUBLE PARKING (5)", "top_vehicle_types": "CAR (502); MAXI-CAB (194); LGV (62)", "representative_location": "17th Main Road, KPTCL Quarters, Block 2, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "28", "center_lat": "12.999529", "center_lon": "77.571", "zone_count": "2", "records": "1121", "max_active_days": "121", "area_priority_score_0_100": "33.44", "operational_impact_score_0_100": "48.53", "primary_police_station": "Malleshwaram", "primary_junction": "No Junction", "recommended_time_window_IST": "10:00-10:59", "top_violations": "WRONG PARKING (619); NO PARKING (504); PARKING IN A MAIN ROAD (11)", "top_vehicle_types": "CAR (547); PASSENGER AUTO (275); SCOOTER (197)", "representative_location": "Sri Venkataranga Ayangar Road, RR Palace, Malleshwaram, Bengaluru, Karnataka. Pin-560003 (India)"}, {"area_rank": "29", "center_lat": "12.971258", "center_lon": "77.597798", "zone_count": "3", "records": "830", "max_active_days": "83", "area_priority_score_0_100": "34.93", "operational_impact_score_0_100": "48.06", "primary_police_station": "Cubbon Park", "primary_junction": "BTP063 - Siddalingaiah Circle", "recommended_time_window_IST": "11:00-11:59", "top_violations": "NO PARKING (773); WRONG PARKING (57); PARKING IN A MAIN ROAD (25)", "top_vehicle_types": "CAR (431); SCOOTER (188); MOTOR CYCLE (102)", "representative_location": "Walton Road, Walton Road Circle, Shanthala Nagar, Bengaluru, Karnataka. Pin-560001 (India)"}, {"area_rank": "30", "center_lat": "12.950802", "center_lon": "77.7", "zone_count": "3", "records": "1002", "max_active_days": "64", "area_priority_score_0_100": "32.93", "operational_impact_score_0_100": "47.77", "primary_police_station": "HAL Old Airport", "primary_junction": "No Junction", "recommended_time_window_IST": "03:00-03:59", "top_violations": "WRONG PARKING (786); PARKING IN A MAIN ROAD (669); NO PARKING (275)", "top_vehicle_types": "CAR (394); BUS (BMTC/KSRTC) (183); PRIVATE BUS (118)", "representative_location": "Outer Ring Road, Soulspace Paradigm, Marathahalli Village, Marathahalli, Bengaluru, Karnataka. Pin-560037 (India)"}, {"area_rank": "31", "center_lat": "12.968771", "center_lon": "77.536512", "zone_count": "3", "records": "936", "max_active_days": "84", "area_priority_score_0_100": "33.46", "operational_impact_score_0_100": "47.77", "primary_police_station": "Vijayanagara", "primary_junction": "BTP022 - Marenahalli Junction, Vijayanagar", "recommended_time_window_IST": "05:00-05:59", "top_violations": "NO PARKING (520); WRONG PARKING (436); PARKING IN A MAIN ROAD (16)", "top_vehicle_types": "SCOOTER (483); MOTOR CYCLE (252); CAR (161)", "representative_location": "1st Main Road, Police Quarters, Vijaya Nagar, Bengaluru, Karnataka. Pin-560040 (India)"}, {"area_rank": "32", "center_lat": "12.976", "center_lon": "77.560895", "zone_count": "3", "records": "820", "max_active_days": "87", "area_priority_score_0_100": "33.52", "operational_impact_score_0_100": "47.23", "primary_police_station": "Magadi Road", "primary_junction": "BTP074 - Leprosy Hospital Junction", "recommended_time_window_IST": "10:00-10:59", "top_violations": "WRONG PARKING (601); NO PARKING (220); PARKING IN A MAIN ROAD (44)", "top_vehicle_types": "SCOOTER (428); PASSENGER AUTO (123); MOTOR CYCLE (102)", "representative_location": "G Narayana Kumar Road, Annapurneshwari Industrial Area, Magadi Road Area, Bengaluru, Karnataka. Pin-560023 (India)"}, {"area_rank": "33", "center_lat": "12.98065", "center_lon": "77.603", "zone_count": "2", "records": "605", "max_active_days": "78", "area_priority_score_0_100": "34.07", "operational_impact_score_0_100": "46.23", "primary_police_station": "Shivajinagar", "primary_junction": "BTP211 - Central Street Junction", "recommended_time_window_IST": "10:00-10:59", "top_violations": "WRONG PARKING (570); NO PARKING (35); PARKING ON FOOTPATH (16)", "top_vehicle_types": "SCOOTER (266); CAR (151); MOTOR CYCLE (54)", "representative_location": "Infantry Road, Prestige Central, Shivaji Nagar, Bengaluru, Karnataka. Pin-560001 (India)"}, {"area_rank": "34", "center_lat": "12.936", "center_lon": "77.615617", "zone_count": "2", "records": "665", "max_active_days": "66", "area_priority_score_0_100": "33.31", "operational_impact_score_0_100": "46.22", "primary_police_station": "Adugodi", "primary_junction": "BTP135 - UCO Bank Junction", "recommended_time_window_IST": "09:00-09:59", "top_violations": "NO PARKING (592); WRONG PARKING (90); PARKING IN A MAIN ROAD (39)", "top_vehicle_types": "SCOOTER (283); CAR (184); MOTOR CYCLE (123)", "representative_location": "20th Main Road, Block 7, Koramangala, Bengaluru, Karnataka. Pin-560095 (India)"}, {"area_rank": "35", "center_lat": "13.191", "center_lon": "77.646", "zone_count": "1", "records": "595", "max_active_days": "93", "area_priority_score_0_100": "33.65", "operational_impact_score_0_100": "45.93", "primary_police_station": "Chikkajala", "primary_junction": "No Junction", "recommended_time_window_IST": "01:00-01:59", "top_violations": "NO PARKING (510); PARKING IN A MAIN ROAD (194); WRONG PARKING (90)", "top_vehicle_types": "CAR (438); MAXI-CAB (112); SCOOTER (12)", "representative_location": "Bengaluru Bellary Road, Sadahalli Gate Junction, Navarathna Agrahara, Bengaluru, Karnataka. Pin-562157 (India)"}, {"area_rank": "36", "center_lat": "12.962", "center_lon": "77.599", "zone_count": "1", "records": "609", "max_active_days": "41", "area_priority_score_0_100": "31.51", "operational_impact_score_0_100": "44.85", "primary_police_station": "Ashok Nagar", "primary_junction": "BTP172 - Nanjappa Circle", "recommended_time_window_IST": "04:00-04:59", "top_violations": "NO PARKING (593); WRONG PARKING (16); DEFECTIVE NUMBER PLATE (8)", "top_vehicle_types": "SCOOTER (324); MOTOR CYCLE (263); CAR (14)", "representative_location": "O Shaughnessy Road, Divyasree Chambers, Langford Garden, Richmond Town, Bengaluru, Karnataka. Pin-560025 (India)"}, {"area_rank": "37", "center_lat": "12.972443", "center_lon": "77.538", "zone_count": "2", "records": "467", "max_active_days": "71", "area_priority_score_0_100": "33.29", "operational_impact_score_0_100": "44.7", "primary_police_station": "Vijayanagara", "primary_junction": "BTP028 - Vijayanagar Bus Stand Junction", "recommended_time_window_IST": "10:00-10:59", "top_violations": "WRONG PARKING (299); NO PARKING (168); DEFECTIVE NUMBER PLATE (6)", "top_vehicle_types": "SCOOTER (192); CAR (188); MOTOR CYCLE (45)", "representative_location": "17th Cross Road, MRCR Extension, Vijaya Nagar, Bengaluru, Karnataka. Pin-560040 (India)"}, {"area_rank": "38", "center_lat": "12.928246", "center_lon": "77.581246", "zone_count": "2", "records": "552", "max_active_days": "57", "area_priority_score_0_100": "31.87", "operational_impact_score_0_100": "44.63", "primary_police_station": "Jayanagara", "primary_junction": "BTP189 - New Diagonal Road, Jayanagar", "recommended_time_window_IST": "09:00-09:59", "top_violations": "NO PARKING (520); WRONG PARKING (32); DEFECTIVE NUMBER PLATE (12)", "top_vehicle_types": "CAR (241); SCOOTER (232); MOTOR CYCLE (56)", "representative_location": "5th Main Road, Shri Vinayaka Circle, Jayanagar, Bengaluru, Karnataka. Pin-560011 (India)"}, {"area_rank": "39", "center_lat": "12.981", "center_lon": "77.558", "zone_count": "1", "records": "321", "max_active_days": "89", "area_priority_score_0_100": "35.85", "operational_impact_score_0_100": "44.5", "primary_police_station": "Magadi Road", "primary_junction": "BTP010 - Rajajinagar Entrance", "recommended_time_window_IST": "12:00-12:59", "top_violations": "NO PARKING (233); WRONG PARKING (88); PARKING IN A MAIN ROAD (26)", "top_vehicle_types": "SCOOTER (160); MOTOR CYCLE (59); PASSENGER AUTO (44)", "representative_location": "80 Feet Ring Road, SSI Industrial Area, Block 5, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "40", "center_lat": "12.989203", "center_lon": "77.550464", "zone_count": "3", "records": "418", "max_active_days": "53", "area_priority_score_0_100": "32.94", "operational_impact_score_0_100": "44.03", "primary_police_station": "Vijayanagara", "primary_junction": "BTP170 - Dr. Bheem Rao Palace, Chord Road", "recommended_time_window_IST": "02:00-02:59", "top_violations": "WRONG PARKING (332); PARKING IN A MAIN ROAD (95); NO PARKING (87)", "top_vehicle_types": "CAR (199); SCOOTER (57); LGV (32)", "representative_location": "Chord Road, Shivanahalli Junction, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "41", "center_lat": "12.955", "center_lon": "77.586", "zone_count": "1", "records": "233", "max_active_days": "90", "area_priority_score_0_100": "37.37", "operational_impact_score_0_100": "43.96", "primary_police_station": "Wilson Garden", "primary_junction": "BTP192 - Urvashi Theater", "recommended_time_window_IST": "02:00-02:59", "top_violations": "NO PARKING (225); WRONG PARKING (8); DEFECTIVE NUMBER PLATE (4)", "top_vehicle_types": "CAR (165); SCOOTER (41); PASSENGER AUTO (10)", "representative_location": "Lalbagh Main Road, Dr Sri Shantaveera Swami Circle, Mavalli, Bengaluru, Karnataka. Pin-560004 (India)"}, {"area_rank": "42", "center_lat": "12.985", "center_lon": "77.55347", "zone_count": "2", "records": "519", "max_active_days": "57", "area_priority_score_0_100": "30.91", "operational_impact_score_0_100": "43.84", "primary_police_station": "Rajajinagar", "primary_junction": "BTP061 - Bhashyam Circle", "recommended_time_window_IST": "09:00-09:59", "top_violations": "NO PARKING (293); WRONG PARKING (226); DEFECTIVE NUMBER PLATE (11)", "top_vehicle_types": "SCOOTER (267); CAR (114); MOTOR CYCLE (94)", "representative_location": "Vatal Nagaraj Road, Bescom Employees House Building Cooperative Society, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 "}, {"area_rank": "43", "center_lat": "12.927037", "center_lon": "77.586", "zone_count": "3", "records": "404", "max_active_days": "48", "area_priority_score_0_100": "32.13", "operational_impact_score_0_100": "43.44", "primary_police_station": "Jayanagara", "primary_junction": "BTP226 - 33rd Cross, 11th Main, Jayanagar", "recommended_time_window_IST": "08:00-08:59", "top_violations": "NO PARKING (347); WRONG PARKING (143); PARKING IN A MAIN ROAD (46)", "top_vehicle_types": "CAR (196); SCOOTER (146); MOTOR CYCLE (42)", "representative_location": "11th Main Road, Jayanagar, Bengaluru, Karnataka. Pin-560011 (India)"}, {"area_rank": "44", "center_lat": "12.93", "center_lon": "77.685", "zone_count": "1", "records": "473", "max_active_days": "69", "area_priority_score_0_100": "30.69", "operational_impact_score_0_100": "43.32", "primary_police_station": "HAL Old Airport", "primary_junction": "No Junction", "recommended_time_window_IST": "08:00-08:59", "top_violations": "NO PARKING (290); WRONG PARKING (230); PARKING NEAR ROAD CROSSING (126)", "top_vehicle_types": "CAR (182); PASSENGER AUTO (165); MAXI-CAB (48)", "representative_location": "Outer Ring Road, Saffron Square, Kariyammana Agrahara, Bengaluru, Karnataka. Pin-560103 (India)"}, {"area_rank": "45", "center_lat": "12.988", "center_lon": "77.537513", "zone_count": "2", "records": "378", "max_active_days": "64", "area_priority_score_0_100": "32.28", "operational_impact_score_0_100": "43.23", "primary_police_station": "Vijayanagara", "primary_junction": "BTP208 - Havanur Circle", "recommended_time_window_IST": "10:00-10:59", "top_violations": "WRONG PARKING (336); NO PARKING (44); PARKING IN A MAIN ROAD (33)", "top_vehicle_types": "CAR (183); SCOOTER (133); MOTOR CYCLE (45)", "representative_location": "1st Main Road, Havanur Circle, Basaveshwara Nagar, Bengaluru, Karnataka. Pin-560079 (India)"}, {"area_rank": "46", "center_lat": "12.917", "center_lon": "77.573359", "zone_count": "2", "records": "359", "max_active_days": "68", "area_priority_score_0_100": "32.68", "operational_impact_score_0_100": "43.23", "primary_police_station": "Banashankari", "primary_junction": "BTP115 - Sahasra Hospital, Jayanagar", "recommended_time_window_IST": "11:00-11:59", "top_violations": "NO PARKING (295); WRONG PARKING (69); DEFECTIVE NUMBER PLATE (18)", "top_vehicle_types": "SCOOTER (150); PASSENGER AUTO (88); MOTOR CYCLE (52)", "representative_location": "Konanakunte Main Road, Banashankari Bus Stand Junction, JP Nagar Phase 1, Bengaluru, Karnataka. Pin-560070 (India)"}, {"area_rank": "47", "center_lat": "12.984", "center_lon": "77.578", "zone_count": "1", "records": "250", "max_active_days": "79", "area_priority_score_0_100": "35.27", "operational_impact_score_0_100": "43.11", "primary_police_station": "High ground", "primary_junction": "BTP054 - Shivananda Circle", "recommended_time_window_IST": "08:00-08:59", "top_violations": "NO PARKING (210); WRONG PARKING (41); DEFECTIVE NUMBER PLATE (6)", "top_vehicle_types": "CAR (153); SCOOTER (38); PASSENGER AUTO (24)", "representative_location": "Kumar Krupa Road, Padmashree RMP Aaradhya Circle, Gandhi Nagar, Bengaluru, Karnataka. Pin-560001 (India)"}, {"area_rank": "48", "center_lat": "12.98", "center_lon": "77.614", "zone_count": "1", "records": "479", "max_active_days": "79", "area_priority_score_0_100": "29.83", "operational_impact_score_0_100": "42.9", "primary_police_station": "Shivajinagar", "primary_junction": "No Junction", "recommended_time_window_IST": "10:00-10:59", "top_violations": "NO PARKING (267); WRONG PARKING (212); PARKING IN A MAIN ROAD (2)", "top_vehicle_types": "CAR (416); PASSENGER AUTO (38); LGV (7)", "representative_location": "Dickenson Road, Sivanchetti Gardens, Bengaluru, Karnataka. Pin-560042 (India)"}, {"area_rank": "49", "center_lat": "12.957", "center_lon": "77.701", "zone_count": "1", "records": "427", "max_active_days": "93", "area_priority_score_0_100": "29.96", "operational_impact_score_0_100": "42.48", "primary_police_station": "HAL Old Airport", "primary_junction": "No Junction", "recommended_time_window_IST": "02:00-02:59", "top_violations": "NO PARKING (243); WRONG PARKING (216); PARKING IN A MAIN ROAD (80)", "top_vehicle_types": "SCOOTER (138); BUS (BMTC/KSRTC) (110); MOTOR CYCLE (87)", "representative_location": "HAL Airport Road, Marathahalli, Bengaluru, Karnataka. Pin-560037 (India)"}, {"area_rank": "50", "center_lat": "12.93", "center_lon": "77.61", "zone_count": "1", "records": "109", "max_active_days": "46", "area_priority_score_0_100": "39.89", "operational_impact_score_0_100": "42.11", "primary_police_station": "Mico Layout", "primary_junction": "BTP140 - Madiwala Check Post", "recommended_time_window_IST": "02:00-02:59", "top_violations": "WRONG PARKING (91); PARKING IN A MAIN ROAD (85); NO PARKING (18)", "top_vehicle_types": "CAR (42); MAXI-CAB (36); PASSENGER AUTO (14)", "representative_location": "Thavarekere Main Road, Prestige Lexington Towers, Sadduguntepalya, Bengaluru, Karnataka. Pin-560029 (India)"}, {"area_rank": "51", "center_lat": "12.98552", "center_lon": "77.556", "zone_count": "2", "records": "246", "max_active_days": "57", "area_priority_score_0_100": "31.52", "operational_impact_score_0_100": "40.98", "primary_police_station": "Rajajinagar", "primary_junction": "BTP210 - 50th cross, 12th Main , Rajajinagar", "recommended_time_window_IST": "03:00-03:59", "top_violations": "WRONG PARKING (151); NO PARKING (95); DEFECTIVE NUMBER PLATE (1)", "top_vehicle_types": "CAR (149); SCOOTER (36); PASSENGER AUTO (20)", "representative_location": "10th Main Road, Bescom Employees House Building Cooperative Society, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (Ind"}, {"area_rank": "52", "center_lat": "12.958", "center_lon": "77.586", "zone_count": "1", "records": "196", "max_active_days": "69", "area_priority_score_0_100": "33.05", "operational_impact_score_0_100": "40.85", "primary_police_station": "Wilson Garden", "primary_junction": "BTP192 - Urvashi Theater", "recommended_time_window_IST": "07:00-07:59", "top_violations": "NO PARKING (190); WRONG PARKING (6); PARKING IN A MAIN ROAD (3)", "top_vehicle_types": "CAR (59); SCOOTER (54); MOTOR CYCLE (38)", "representative_location": "Lalbagh Main Road, SGN Layout, Kalasipalyam, Bengaluru, Karnataka. Pin-560027 (India)"}, {"area_rank": "53", "center_lat": "12.987", "center_lon": "77.58", "zone_count": "1", "records": "154", "max_active_days": "50", "area_priority_score_0_100": "33.73", "operational_impact_score_0_100": "40.2", "primary_police_station": "High ground", "primary_junction": "BTP054 - Shivananda Circle", "recommended_time_window_IST": "07:00-07:59", "top_violations": "NO PARKING (132); WRONG PARKING (23); PARKING IN A MAIN ROAD (5)", "top_vehicle_types": "CAR (137); SCOOTER (4); LGV (3)", "representative_location": "Kumar Krupa Road, Dr Hardikar Circle, Seshadripuram, Bengaluru, Karnataka. Pin-560001 (India)"}, {"area_rank": "54", "center_lat": "12.944", "center_lon": "77.573", "zone_count": "1", "records": "183", "max_active_days": "51", "area_priority_score_0_100": "31.79", "operational_impact_score_0_100": "39.86", "primary_police_station": "Basavanagudi", "primary_junction": "BTP108 - Tagore Park Junction", "recommended_time_window_IST": "04:00-04:59", "top_violations": "NO PARKING (169); WRONG PARKING (14); DEFECTIVE NUMBER PLATE (3)", "top_vehicle_types": "CAR (151); SCOOTER (14); PASSENGER AUTO (12)", "representative_location": "Rathana Vilas Road, Babasahebara Palya, Basavanagudi, Bengaluru, Karnataka. Pin-560004 (India)"}, {"area_rank": "55", "center_lat": "12.999", "center_lon": "77.542", "zone_count": "1", "records": "149", "max_active_days": "55", "area_priority_score_0_100": "32.4", "operational_impact_score_0_100": "39.32", "primary_police_station": "Vijayanagara", "primary_junction": "BTP206 - Shankara Mutt Circle, Vijayanagar", "recommended_time_window_IST": "05:00-05:59", "top_violations": "WRONG PARKING (107); NO PARKING (42); PARKING IN A MAIN ROAD (7)", "top_vehicle_types": "CAR (108); SCOOTER (21); PASSENGER AUTO (8)", "representative_location": "Padmabhushan Dr MC Modi Road, Bhimajyothi LIC Colony, Basaveshwara Nagar, Bengaluru, Karnataka. Pin-560079 (India)"}, {"area_rank": "56", "center_lat": "12.96", "center_lon": "77.644", "zone_count": "1", "records": "130", "max_active_days": "56", "area_priority_score_0_100": "32.57", "operational_impact_score_0_100": "38.84", "primary_police_station": "Jeevanbheemanagar", "primary_junction": "BTP148 - 17th Main, Doopanahalli Bus Stop", "recommended_time_window_IST": "04:00-04:59", "top_violations": "NO PARKING (124); PARKING IN A MAIN ROAD (24); WRONG PARKING (16)", "top_vehicle_types": "PASSENGER AUTO (49); MAXI-CAB (34); CAR (18)", "representative_location": "Old Airport Road, Carlton Towers, HAL Stage 2, Indiranagar, Bengaluru, Karnataka. Pin-560008 (India)"}, {"area_rank": "57", "center_lat": "12.99", "center_lon": "77.553", "zone_count": "1", "records": "167", "max_active_days": "37", "area_priority_score_0_100": "30.2", "operational_impact_score_0_100": "38.6", "primary_police_station": "Rajajinagar", "primary_junction": "BTP204 - ESI Hospital, Rajajinagar", "recommended_time_window_IST": "03:00-03:59", "top_violations": "WRONG PARKING (160); NO PARKING (7); DEFECTIVE NUMBER PLATE (2)", "top_vehicle_types": "PASSENGER AUTO (70); CAR (37); SCOOTER (30)", "representative_location": "41st Cross Road, KEB Quarters, Block 3, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "58", "center_lat": "12.925", "center_lon": "77.619", "zone_count": "1", "records": "162", "max_active_days": "33", "area_priority_score_0_100": "30.28", "operational_impact_score_0_100": "38.51", "primary_police_station": "Madiwala", "primary_junction": "BTP137 - Madiwala Traffic PS Junction", "recommended_time_window_IST": "01:00-01:59", "top_violations": "NO PARKING (156); WRONG PARKING (6); PARKING IN A MAIN ROAD (2)", "top_vehicle_types": "CAR (77); PRIVATE BUS (26); PASSENGER AUTO (21)", "representative_location": "Domlur Inner Ring Road, Block 2, Koramangala, Bengaluru, Karnataka. Pin-560068 (India)"}, {"area_rank": "59", "center_lat": "12.996", "center_lon": "77.584", "zone_count": "1", "records": "121", "max_active_days": "43", "area_priority_score_0_100": "32.37", "operational_impact_score_0_100": "38.42", "primary_police_station": "Sheshadripuram", "primary_junction": "BTP032 - Windsor Circle", "recommended_time_window_IST": "10:00-10:59", "top_violations": "NO PARKING (84); WRONG PARKING (40); PARKING IN A MAIN ROAD (5)", "top_vehicle_types": "CAR (115); SCOOTER (2); PASSENGER AUTO (1)", "representative_location": "Anna Basavanna Road, RV Layout, Seshadripuram, Bengaluru, Karnataka. Pin-560020 (India)"}, {"area_rank": "60", "center_lat": "12.964", "center_lon": "77.556", "zone_count": "1", "records": "107", "max_active_days": "27", "area_priority_score_0_100": "33.25", "operational_impact_score_0_100": "38.38", "primary_police_station": "Magadi Road", "primary_junction": "BTP091 - Sirsi Circle", "recommended_time_window_IST": "02:00-02:59", "top_violations": "NO PARKING (88); PARKING IN A MAIN ROAD (37); PARKING NEAR BUSTOP/SCHOOL/HOSPITAL ETC (25)", "top_vehicle_types": "CAR (42); PASSENGER AUTO (20); GOODS AUTO (19)", "representative_location": "JJR Main Road, Obleshwar Colony, JJR Nagar South, Bengaluru, Karnataka. Pin-560018 (India)"}, {"area_rank": "61", "center_lat": "12.981", "center_lon": "77.549", "zone_count": "1", "records": "154", "max_active_days": "42", "area_priority_score_0_100": "30.25", "operational_impact_score_0_100": "38.28", "primary_police_station": "Magadi Road", "primary_junction": "BTP024 - NPS, Vijayanagar", "recommended_time_window_IST": "03:00-03:59", "top_violations": "NO PARKING (95); WRONG PARKING (59); PARKING IN A MAIN ROAD (5)", "top_vehicle_types": "CAR (87); SCOOTER (27); MOTOR CYCLE (10)", "representative_location": "Pramukh Swami Maharaj Road, GEF Block, Industrial Town, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "62", "center_lat": "12.937", "center_lon": "77.602", "zone_count": "1", "records": "104", "max_active_days": "49", "area_priority_score_0_100": "32.66", "operational_impact_score_0_100": "37.94", "primary_police_station": "Mico Layout", "primary_junction": "BTP126 - Dairy Circle", "recommended_time_window_IST": "07:00-07:59", "top_violations": "WRONG PARKING (79); PARKING IN A MAIN ROAD (42); NO PARKING (25)", "top_vehicle_types": "SCOOTER (46); MOTOR CYCLE (21); MAXI-CAB (14)", "representative_location": "Dairy Circle Flyover Underpass, Dairy Circle, Adugodi, Bengaluru, Karnataka. Pin-560029 (India)"}, {"area_rank": "63", "center_lat": "12.931", "center_lon": "77.584", "zone_count": "1", "records": "139", "max_active_days": "46", "area_priority_score_0_100": "30.06", "operational_impact_score_0_100": "37.74", "primary_police_station": "Jayanagara", "primary_junction": "BTP219 - Canara Bank Junction", "recommended_time_window_IST": "10:00-10:59", "top_violations": "NO PARKING (92); WRONG PARKING (47); PARKING IN A MAIN ROAD (4)", "top_vehicle_types": "CAR (82); SCOOTER (40); MOTOR CYCLE (10)", "representative_location": "9th Main Road, Da Ra Bendre Circle, Jayanagar, Bengaluru, Karnataka. Pin-560011 (India)"}, {"area_rank": "64", "center_lat": "12.98", "center_lon": "77.555", "zone_count": "1", "records": "118", "max_active_days": "54", "area_priority_score_0_100": "30.74", "operational_impact_score_0_100": "37.42", "primary_police_station": "Magadi Road", "primary_junction": "BTP062 - Basava Mantapa, Dr. Rajkumar Road", "recommended_time_window_IST": "06:00-06:59", "top_violations": "NO PARKING (93); WRONG PARKING (25); PARKING IN A MAIN ROAD (8)", "top_vehicle_types": "CAR (44); PASSENGER AUTO (23); SCOOTER (22)", "representative_location": "80 Feet Ring Road, Sri SV Chenna Krishnaiah Circle, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "65", "center_lat": "12.978", "center_lon": "77.544", "zone_count": "1", "records": "126", "max_active_days": "45", "area_priority_score_0_100": "29.97", "operational_impact_score_0_100": "37.27", "primary_police_station": "Magadi Road", "primary_junction": "BTP067 - Jai Muni Rao Circle", "recommended_time_window_IST": "11:00-11:59", "top_violations": "NO PARKING (65); WRONG PARKING (61); PARKING IN A MAIN ROAD (2)", "top_vehicle_types": "CAR (49); SCOOTER (40); MOTOR CYCLE (18)", "representative_location": "G Narayana Kumar Road, Jai Maniurao Circle, Vijaya Nagar, Bengaluru, Karnataka. Pin-560040 (India)"}, {"area_rank": "66", "center_lat": "12.997", "center_lon": "77.546", "zone_count": "1", "records": "112", "max_active_days": "48", "area_priority_score_0_100": "30.56", "operational_impact_score_0_100": "37.1", "primary_police_station": "Vijayanagara", "primary_junction": "BTP205 - Modi Hospital Junction", "recommended_time_window_IST": "10:00-10:59", "top_violations": "WRONG PARKING (97); NO PARKING (15); PARKING IN A MAIN ROAD (13)", "top_vehicle_types": "CAR (54); SCOOTER (37); MOTOR CYCLE (13)", "representative_location": "Padmabhushan Dr MC Modi Road, Indiranagar, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}];
+    const actionPlan = [{"area_rank": "1", "priority_band": "Critical", "primary_police_station": "Shivajinagar", "recommended_time_window_IST": "10:00-10:59", "suggested_patrol_units": "4", "operational_impact_score_0_100": "71.12", "records": "19384", "zone_count": "20", "primary_junction": "BTP051 - Safina Plaza Junction", "recommended_intervention": "auto stand regulation; tow-away readiness; junction approach protection", "representative_location": "Kamaraj Road, Sri Nagamma Devi Circle, Sivanchetti Gardens, Bengaluru, Karnataka. Pin-560042 (India)"}, {"area_rank": "2", "priority_band": "Critical", "primary_police_station": "Upparpet", "recommended_time_window_IST": "09:00-09:59", "suggested_patrol_units": "4", "operational_impact_score_0_100": "71.01", "records": "35809", "zone_count": "51", "primary_junction": "BTP040 - Elite Junction", "recommended_intervention": "tow-away readiness; junction approach protection", "representative_location": "5th Main Road, Kempe Gowda Circle, Gandhi Nagar, Bengaluru, Karnataka. Pin-560009 (India)"}, {"area_rank": "3", "priority_band": "High", "primary_police_station": "City Market", "recommended_time_window_IST": "00:00-00:59", "suggested_patrol_units": "3", "operational_impact_score_0_100": "68.37", "records": "15913", "zone_count": "25", "primary_junction": "BTP082 - KR Market Junction", "recommended_intervention": "carriageway clearance; auto stand regulation; tow-away readiness; junction approach protection", "representative_location": "KR Main Road, City Market Circle, Bengaluru, Karnataka. Pin-560002 (India)"}, {"area_rank": "4", "priority_band": "High", "primary_police_station": "Kodigehalli", "recommended_time_window_IST": "11:00-11:59", "suggested_patrol_units": "3", "operational_impact_score_0_100": "63.52", "records": "3280", "zone_count": "1", "primary_junction": "No Junction", "recommended_intervention": "tow-away readiness; junction approach protection", "representative_location": "Sahakar Nagar Road, Fortuna Acacia, Byatarayanapura, Bengaluru, Karnataka. Pin-560092 (India)"}, {"area_rank": "5", "priority_band": "High", "primary_police_station": "HAL Old Airport", "recommended_time_window_IST": "04:00-04:59", "suggested_patrol_units": "3", "operational_impact_score_0_100": "62.6", "records": "5718", "zone_count": "2", "primary_junction": "No Junction", "recommended_intervention": "carriageway clearance; tow-away readiness; junction approach protection", "representative_location": "New Horizon College Road, New Horizon College of Engineering, Kadubisanahalli, Bengaluru, Karnataka. Pin-560103 (India)"}, {"area_rank": "6", "priority_band": "Medium", "primary_police_station": "Malleshwaram", "recommended_time_window_IST": "08:00-08:59", "suggested_patrol_units": "2", "operational_impact_score_0_100": "59.79", "records": "7719", "zone_count": "18", "primary_junction": "BTP027 - Modi Bridge Junction", "recommended_intervention": "carriageway clearance; tow-away readiness; junction approach protection", "representative_location": "10th Cross Road, Block 1, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "7", "priority_band": "Medium", "primary_police_station": "Vijayanagara", "recommended_time_window_IST": "04:00-04:59", "suggested_patrol_units": "2", "operational_impact_score_0_100": "58.18", "records": "3590", "zone_count": "3", "primary_junction": "BTP020 - Hosahalli Metro Station", "recommended_intervention": "tow-away readiness", "representative_location": "Chord Road, Manuvana, Vijaya Nagar, Bengaluru, Karnataka. Pin-560040 (India)"}, {"area_rank": "8", "priority_band": "Medium", "primary_police_station": "K.R. Pura", "recommended_time_window_IST": "00:00-00:59", "suggested_patrol_units": "2", "operational_impact_score_0_100": "57.85", "records": "3084", "zone_count": "3", "primary_junction": "No Junction", "recommended_intervention": "carriageway clearance; auto stand regulation; tow-away readiness; junction approach protection", "representative_location": "MBT Road, Devasandra Junction, KR Puram, Bengaluru, Karnataka. Pin-560036 (India)"}, {"area_rank": "9", "priority_band": "Medium", "primary_police_station": "Chikkajala", "recommended_time_window_IST": "01:00-01:59", "suggested_patrol_units": "2", "operational_impact_score_0_100": "57.84", "records": "3374", "zone_count": "4", "primary_junction": "No Junction", "recommended_intervention": "carriageway clearance; tow-away readiness; junction approach protection", "representative_location": "Unnamed Road, Begur Chikkanahalli, Bengaluru, Karnataka. Pin-562149 (India)"}, {"area_rank": "10", "priority_band": "Medium", "primary_police_station": "Hebbala", "recommended_time_window_IST": "03:00-03:59", "suggested_patrol_units": "2", "operational_impact_score_0_100": "57.45", "records": "2963", "zone_count": "2", "primary_junction": "No Junction", "recommended_intervention": "tow-away readiness; junction approach protection", "representative_location": "Bellary Road, Vinayaka Nagar, Hebbal, Bengaluru, Karnataka. Pin-560024 (India)"}, {"area_rank": "11", "priority_band": "Medium", "primary_police_station": "Malleshwaram", "recommended_time_window_IST": "10:00-10:59", "suggested_patrol_units": "2", "operational_impact_score_0_100": "55.86", "records": "3000", "zone_count": "5", "primary_junction": "BTP001 - 10th Cross, Dr. Rajkumar Road", "recommended_intervention": "tow-away readiness", "representative_location": "80 Feet Ring Road, Dr Rajkumar Road 17th Cross Junction, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "12", "priority_band": "Medium", "primary_police_station": "Malleshwaram", "recommended_time_window_IST": "09:00-09:59", "suggested_patrol_units": "2", "operational_impact_score_0_100": "55.2", "records": "4440", "zone_count": "8", "primary_junction": "No Junction", "recommended_intervention": "auto stand regulation; tow-away readiness; junction approach protection", "representative_location": "80 Feet Ring Road, Orion, Brigade Gateway, Malleshwaram West, Bengaluru, Karnataka. Pin-560055 (India)"}, {"area_rank": "13", "priority_band": "Medium", "primary_police_station": "Magadi Road", "recommended_time_window_IST": "12:00-12:59", "suggested_patrol_units": "2", "operational_impact_score_0_100": "55.11", "records": "2212", "zone_count": "2", "primary_junction": "BTP070 - Cholurpalya Junction, Magadi Road", "recommended_intervention": "auto stand regulation; junction approach protection", "representative_location": "1st Cross Road, Mallige Thotta, Cholurpalya, Bengaluru, Karnataka. Pin-560023 (India)"}, {"area_rank": "14", "priority_band": "Medium", "primary_police_station": "Vijayanagara", "recommended_time_window_IST": "11:00-11:59", "suggested_patrol_units": "2", "operational_impact_score_0_100": "54.04", "records": "1915", "zone_count": "4", "primary_junction": "BTP016 - 5th Main Road, RPC Layout", "recommended_intervention": "carriageway clearance; tow-away readiness", "representative_location": "Sri Sankasta Hara Ganapati Temple Road, RPC Layout, Vijaya Nagar Stage 2, Bengaluru, Karnataka. Pin-560104 (India)"}, {"area_rank": "15", "priority_band": "Watch", "primary_police_station": "Chamarajpet", "recommended_time_window_IST": "07:00-07:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "53.41", "records": "1461", "zone_count": "4", "primary_junction": "BTP048 - Shanthala Junction", "recommended_intervention": "carriageway clearance; auto stand regulation; tow-away readiness; junction approach protection", "representative_location": "Rao Bahadur DGT Road, Majestic Circle, Majestic, Bengaluru, Karnataka. Pin-560023 (India)"}, {"area_rank": "16", "priority_band": "Watch", "primary_police_station": "Mahadevapura", "recommended_time_window_IST": "10:00-10:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "52.99", "records": "1821", "zone_count": "4", "primary_junction": "No Junction", "recommended_intervention": "carriageway clearance; auto stand regulation; junction approach protection", "representative_location": "Old Madras Road, Royal Heritage, Pai Layout, Mahadevapura, Bengaluru, Karnataka. Pin-560016 (India)"}, {"area_rank": "17", "priority_band": "Watch", "primary_police_station": "Basavanagudi", "recommended_time_window_IST": "11:00-11:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "52.5", "records": "1650", "zone_count": "4", "primary_junction": "BTP108 - Tagore Park Junction", "recommended_intervention": "carriageway clearance; tow-away readiness; junction approach protection", "representative_location": "Sri DV Gundappa Road, Shopper Junction, Basavanagudi, Bengaluru, Karnataka. Pin-560004 (India)"}, {"area_rank": "18", "priority_band": "Watch", "primary_police_station": "City Market", "recommended_time_window_IST": "11:00-11:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "52.37", "records": "1853", "zone_count": "5", "primary_junction": "BTP104 - Medical College Circle", "recommended_intervention": "carriageway clearance; auto stand regulation", "representative_location": "Kalasipalyam Main Road, Kalasipalyam, Bengaluru, Karnataka. Pin-560002 (India)"}, {"area_rank": "19", "priority_band": "Watch", "primary_police_station": "Shivajinagar", "recommended_time_window_IST": "05:00-05:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "52.23", "records": "1951", "zone_count": "3", "primary_junction": "BTP042 - Minsk Square Junction (CTO)", "recommended_intervention": "tow-away readiness; junction approach protection", "representative_location": "Cunningham Road, Mantri Altiue Apartment, Shivaji Nagar, Bengaluru, Karnataka. Pin-560001 (India)"}, {"area_rank": "20", "priority_band": "Watch", "primary_police_station": "High ground", "recommended_time_window_IST": "03:00-03:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "50.74", "records": "2200", "zone_count": "4", "primary_junction": "BTP032 - Windsor Circle", "recommended_intervention": "tow-away readiness", "representative_location": "Palace Road, Thulasi Thottam, Vasant Nagar, Bengaluru, Karnataka. Pin-560001 (India)"}, {"area_rank": "21", "priority_band": "Watch", "primary_police_station": "Byatarayanapura", "recommended_time_window_IST": "01:00-01:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "50.73", "records": "1383", "zone_count": "4", "primary_junction": "BTP095 - Satellite Bus Stand, Mysore Road", "recommended_intervention": "carriageway clearance; auto stand regulation; tow-away readiness", "representative_location": "Mysore Road, Satellite Bus Stand Junction, New Timber Yard Layout, Bengaluru, Karnataka. Pin-560026 (India)"}, {"area_rank": "22", "priority_band": "Watch", "primary_police_station": "HAL Old Airport", "recommended_time_window_IST": "08:00-08:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "50.5", "records": "1325", "zone_count": "2", "primary_junction": "No Junction", "recommended_intervention": "carriageway clearance; auto stand regulation; tow-away readiness; junction approach protection", "representative_location": "Kadubeesanahalli Underpass, Kadubisanahalli Junction, Kadubisanahalli, Bengaluru, Karnataka. Pin-560103 (India)"}, {"area_rank": "23", "priority_band": "Watch", "primary_police_station": "Malleshwaram", "recommended_time_window_IST": "09:00-09:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "49.8", "records": "1563", "zone_count": "2", "primary_junction": "No Junction", "recommended_intervention": "tow-away readiness; junction approach protection", "representative_location": "Sri Venkataranga Ayangar Road, Malleshwaram 18th Cross Junction, Malleshwaram West, Bengaluru, Karnataka. Pin-560055 (In"}, {"area_rank": "24", "priority_band": "Watch", "primary_police_station": "Mahadevapura", "recommended_time_window_IST": "01:00-01:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "49.27", "records": "1168", "zone_count": "2", "primary_junction": "No Junction", "recommended_intervention": "carriageway clearance; auto stand regulation; tow-away readiness; junction approach protection", "representative_location": "Outer Ring Road, Venkatappa Colony, Mahadevapura, Bengaluru, Karnataka. Pin-560016 (India)"}, {"area_rank": "25", "priority_band": "Watch", "primary_police_station": "Jeevanbheemanagar", "recommended_time_window_IST": "07:00-07:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "49.25", "records": "1165", "zone_count": "1", "primary_junction": "No Junction", "recommended_intervention": "tow-away readiness; junction approach protection", "representative_location": "Pusa Thippasandra Main Road, Nada Prabhu Kempegowda Circle, New Thippasandra, Bengaluru, Karnataka. Pin-560075 (India)"}, {"area_rank": "26", "priority_band": "Watch", "primary_police_station": "Rajajinagar", "recommended_time_window_IST": "10:00-10:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "49.2", "records": "885", "zone_count": "3", "primary_junction": "BTP023 - Mahalaxmi Layout Entrance", "recommended_intervention": "tow-away readiness", "representative_location": "1st Main Road, Block 1R, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "27", "priority_band": "Watch", "primary_police_station": "Rajajinagar", "recommended_time_window_IST": "03:00-03:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "48.71", "records": "985", "zone_count": "4", "primary_junction": "BTP011 - RR Kalyana Mantapa, Dr. Rajkumar Road", "recommended_intervention": "carriageway clearance; tow-away readiness", "representative_location": "17th Main Road, KPTCL Quarters, Block 2, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "28", "priority_band": "Watch", "primary_police_station": "Malleshwaram", "recommended_time_window_IST": "10:00-10:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "48.53", "records": "1121", "zone_count": "2", "primary_junction": "No Junction", "recommended_intervention": "carriageway clearance; auto stand regulation; tow-away readiness; junction approach protection", "representative_location": "Sri Venkataranga Ayangar Road, RR Palace, Malleshwaram, Bengaluru, Karnataka. Pin-560003 (India)"}, {"area_rank": "29", "priority_band": "Watch", "primary_police_station": "Cubbon Park", "recommended_time_window_IST": "11:00-11:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "48.06", "records": "830", "zone_count": "3", "primary_junction": "BTP063 - Siddalingaiah Circle", "recommended_intervention": "carriageway clearance; tow-away readiness", "representative_location": "Walton Road, Walton Road Circle, Shanthala Nagar, Bengaluru, Karnataka. Pin-560001 (India)"}, {"area_rank": "30", "priority_band": "Watch", "primary_police_station": "HAL Old Airport", "recommended_time_window_IST": "03:00-03:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "47.77", "records": "1002", "zone_count": "3", "primary_junction": "No Junction", "recommended_intervention": "carriageway clearance; tow-away readiness; junction approach protection", "representative_location": "Outer Ring Road, Soulspace Paradigm, Marathahalli Village, Marathahalli, Bengaluru, Karnataka. Pin-560037 (India)"}, {"area_rank": "31", "priority_band": "Watch", "primary_police_station": "Vijayanagara", "recommended_time_window_IST": "05:00-05:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "47.77", "records": "936", "zone_count": "3", "primary_junction": "BTP022 - Marenahalli Junction, Vijayanagar", "recommended_intervention": "carriageway clearance; tow-away readiness; junction approach protection", "representative_location": "1st Main Road, Police Quarters, Vijaya Nagar, Bengaluru, Karnataka. Pin-560040 (India)"}, {"area_rank": "32", "priority_band": "Watch", "primary_police_station": "Magadi Road", "recommended_time_window_IST": "10:00-10:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "47.23", "records": "820", "zone_count": "3", "primary_junction": "BTP074 - Leprosy Hospital Junction", "recommended_intervention": "carriageway clearance; auto stand regulation; junction approach protection", "representative_location": "G Narayana Kumar Road, Annapurneshwari Industrial Area, Magadi Road Area, Bengaluru, Karnataka. Pin-560023 (India)"}, {"area_rank": "33", "priority_band": "Watch", "primary_police_station": "Shivajinagar", "recommended_time_window_IST": "10:00-10:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "46.23", "records": "605", "zone_count": "2", "primary_junction": "BTP211 - Central Street Junction", "recommended_intervention": "tow-away readiness; junction approach protection", "representative_location": "Infantry Road, Prestige Central, Shivaji Nagar, Bengaluru, Karnataka. Pin-560001 (India)"}, {"area_rank": "34", "priority_band": "Watch", "primary_police_station": "Adugodi", "recommended_time_window_IST": "09:00-09:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "46.22", "records": "665", "zone_count": "2", "primary_junction": "BTP135 - UCO Bank Junction", "recommended_intervention": "carriageway clearance; tow-away readiness; junction approach protection", "representative_location": "20th Main Road, Block 7, Koramangala, Bengaluru, Karnataka. Pin-560095 (India)"}, {"area_rank": "35", "priority_band": "Watch", "primary_police_station": "Chikkajala", "recommended_time_window_IST": "01:00-01:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "45.93", "records": "595", "zone_count": "1", "primary_junction": "No Junction", "recommended_intervention": "carriageway clearance; tow-away readiness; junction approach protection", "representative_location": "Bengaluru Bellary Road, Sadahalli Gate Junction, Navarathna Agrahara, Bengaluru, Karnataka. Pin-562157 (India)"}, {"area_rank": "36", "priority_band": "Watch", "primary_police_station": "Ashok Nagar", "recommended_time_window_IST": "04:00-04:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "44.85", "records": "609", "zone_count": "1", "primary_junction": "BTP172 - Nanjappa Circle", "recommended_intervention": "tow-away readiness", "representative_location": "O Shaughnessy Road, Divyasree Chambers, Langford Garden, Richmond Town, Bengaluru, Karnataka. Pin-560025 (India)"}, {"area_rank": "37", "priority_band": "Watch", "primary_police_station": "Vijayanagara", "recommended_time_window_IST": "10:00-10:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "44.7", "records": "467", "zone_count": "2", "primary_junction": "BTP028 - Vijayanagar Bus Stand Junction", "recommended_intervention": "tow-away readiness; junction approach protection", "representative_location": "17th Cross Road, MRCR Extension, Vijaya Nagar, Bengaluru, Karnataka. Pin-560040 (India)"}, {"area_rank": "38", "priority_band": "Watch", "primary_police_station": "Jayanagara", "recommended_time_window_IST": "09:00-09:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "44.63", "records": "552", "zone_count": "2", "primary_junction": "BTP189 - New Diagonal Road, Jayanagar", "recommended_intervention": "tow-away readiness", "representative_location": "5th Main Road, Shri Vinayaka Circle, Jayanagar, Bengaluru, Karnataka. Pin-560011 (India)"}, {"area_rank": "39", "priority_band": "Watch", "primary_police_station": "Magadi Road", "recommended_time_window_IST": "12:00-12:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "44.5", "records": "321", "zone_count": "1", "primary_junction": "BTP010 - Rajajinagar Entrance", "recommended_intervention": "carriageway clearance; auto stand regulation", "representative_location": "80 Feet Ring Road, SSI Industrial Area, Block 5, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}, {"area_rank": "40", "priority_band": "Watch", "primary_police_station": "Vijayanagara", "recommended_time_window_IST": "02:00-02:59", "suggested_patrol_units": "1", "operational_impact_score_0_100": "44.03", "records": "418", "zone_count": "3", "primary_junction": "BTP170 - Dr. Bheem Rao Palace, Chord Road", "recommended_intervention": "carriageway clearance; tow-away readiness", "representative_location": "Chord Road, Shivanahalli Junction, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"}];
+    const shiftPlan = [{"primary_police_station": "Shivajinagar", "recommended_time_window_IST": "10:00-10:59", "priority_area_count": "2", "covered_records": "19989", "suggested_patrol_units": "5"}, {"primary_police_station": "Upparpet", "recommended_time_window_IST": "09:00-09:59", "priority_area_count": "1", "covered_records": "35809", "suggested_patrol_units": "4"}, {"primary_police_station": "City Market", "recommended_time_window_IST": "00:00-00:59", "priority_area_count": "1", "covered_records": "15913", "suggested_patrol_units": "3"}, {"primary_police_station": "Malleshwaram", "recommended_time_window_IST": "09:00-09:59", "priority_area_count": "2", "covered_records": "6003", "suggested_patrol_units": "3"}, {"primary_police_station": "HAL Old Airport", "recommended_time_window_IST": "04:00-04:59", "priority_area_count": "1", "covered_records": "5718", "suggested_patrol_units": "3"}, {"primary_police_station": "Malleshwaram", "recommended_time_window_IST": "10:00-10:59", "priority_area_count": "2", "covered_records": "4121", "suggested_patrol_units": "3"}, {"primary_police_station": "Chikkajala", "recommended_time_window_IST": "01:00-01:59", "priority_area_count": "2", "covered_records": "3969", "suggested_patrol_units": "3"}, {"primary_police_station": "Kodigehalli", "recommended_time_window_IST": "11:00-11:59", "priority_area_count": "1", "covered_records": "3280", "suggested_patrol_units": "3"}, {"primary_police_station": "Magadi Road", "recommended_time_window_IST": "12:00-12:59", "priority_area_count": "2", "covered_records": "2533", "suggested_patrol_units": "3"}, {"primary_police_station": "Malleshwaram", "recommended_time_window_IST": "08:00-08:59", "priority_area_count": "1", "covered_records": "7719", "suggested_patrol_units": "2"}, {"primary_police_station": "Vijayanagara", "recommended_time_window_IST": "04:00-04:59", "priority_area_count": "1", "covered_records": "3590", "suggested_patrol_units": "2"}, {"primary_police_station": "K.R. Pura", "recommended_time_window_IST": "00:00-00:59", "priority_area_count": "1", "covered_records": "3084", "suggested_patrol_units": "2"}, {"primary_police_station": "Hebbala", "recommended_time_window_IST": "03:00-03:59", "priority_area_count": "1", "covered_records": "2963", "suggested_patrol_units": "2"}, {"primary_police_station": "Vijayanagara", "recommended_time_window_IST": "11:00-11:59", "priority_area_count": "1", "covered_records": "1915", "suggested_patrol_units": "2"}, {"primary_police_station": "High ground", "recommended_time_window_IST": "03:00-03:59", "priority_area_count": "1", "covered_records": "2200", "suggested_patrol_units": "1"}, {"primary_police_station": "Shivajinagar", "recommended_time_window_IST": "05:00-05:59", "priority_area_count": "1", "covered_records": "1951", "suggested_patrol_units": "1"}, {"primary_police_station": "City Market", "recommended_time_window_IST": "11:00-11:59", "priority_area_count": "1", "covered_records": "1853", "suggested_patrol_units": "1"}, {"primary_police_station": "Mahadevapura", "recommended_time_window_IST": "10:00-10:59", "priority_area_count": "1", "covered_records": "1821", "suggested_patrol_units": "1"}, {"primary_police_station": "Basavanagudi", "recommended_time_window_IST": "11:00-11:59", "priority_area_count": "1", "covered_records": "1650", "suggested_patrol_units": "1"}, {"primary_police_station": "Chamarajpet", "recommended_time_window_IST": "07:00-07:59", "priority_area_count": "1", "covered_records": "1461", "suggested_patrol_units": "1"}, {"primary_police_station": "Byatarayanapura", "recommended_time_window_IST": "01:00-01:59", "priority_area_count": "1", "covered_records": "1383", "suggested_patrol_units": "1"}, {"primary_police_station": "HAL Old Airport", "recommended_time_window_IST": "08:00-08:59", "priority_area_count": "1", "covered_records": "1325", "suggested_patrol_units": "1"}, {"primary_police_station": "Mahadevapura", "recommended_time_window_IST": "01:00-01:59", "priority_area_count": "1", "covered_records": "1168", "suggested_patrol_units": "1"}, {"primary_police_station": "Jeevanbheemanagar", "recommended_time_window_IST": "07:00-07:59", "priority_area_count": "1", "covered_records": "1165", "suggested_patrol_units": "1"}, {"primary_police_station": "HAL Old Airport", "recommended_time_window_IST": "03:00-03:59", "priority_area_count": "1", "covered_records": "1002", "suggested_patrol_units": "1"}, {"primary_police_station": "Rajajinagar", "recommended_time_window_IST": "03:00-03:59", "priority_area_count": "1", "covered_records": "985", "suggested_patrol_units": "1"}, {"primary_police_station": "Vijayanagara", "recommended_time_window_IST": "05:00-05:59", "priority_area_count": "1", "covered_records": "936", "suggested_patrol_units": "1"}, {"primary_police_station": "Rajajinagar", "recommended_time_window_IST": "10:00-10:59", "priority_area_count": "1", "covered_records": "885", "suggested_patrol_units": "1"}, {"primary_police_station": "Cubbon Park", "recommended_time_window_IST": "11:00-11:59", "priority_area_count": "1", "covered_records": "830", "suggested_patrol_units": "1"}, {"primary_police_station": "Magadi Road", "recommended_time_window_IST": "10:00-10:59", "priority_area_count": "1", "covered_records": "820", "suggested_patrol_units": "1"}, {"primary_police_station": "Adugodi", "recommended_time_window_IST": "09:00-09:59", "priority_area_count": "1", "covered_records": "665", "suggested_patrol_units": "1"}, {"primary_police_station": "Ashok Nagar", "recommended_time_window_IST": "04:00-04:59", "priority_area_count": "1", "covered_records": "609", "suggested_patrol_units": "1"}, {"primary_police_station": "Jayanagara", "recommended_time_window_IST": "09:00-09:59", "priority_area_count": "1", "covered_records": "552", "suggested_patrol_units": "1"}, {"primary_police_station": "Vijayanagara", "recommended_time_window_IST": "10:00-10:59", "priority_area_count": "1", "covered_records": "467", "suggested_patrol_units": "1"}, {"primary_police_station": "Vijayanagara", "recommended_time_window_IST": "02:00-02:59", "priority_area_count": "1", "covered_records": "418", "suggested_patrol_units": "1"}];
+    const stations = [{"rank": "1", "police_station": "Upparpet", "records": "34468"}, {"rank": "2", "police_station": "Shivajinagar", "records": "28044"}, {"rank": "3", "police_station": "Malleshwaram", "records": "22200"}, {"rank": "4", "police_station": "HAL Old Airport", "records": "20819"}, {"rank": "5", "police_station": "City Market", "records": "17646"}, {"rank": "6", "police_station": "Vijayanagara", "records": "14652"}, {"rank": "7", "police_station": "Rajajinagar", "records": "10998"}, {"rank": "8", "police_station": "Kodigehalli", "records": "10916"}, {"rank": "9", "police_station": "Magadi Road", "records": "8558"}, {"rank": "10", "police_station": "Jeevanbheemanagar", "records": "6736"}, {"rank": "11", "police_station": "K.R. Pura", "records": "6546"}, {"rank": "12", "police_station": "Halasuru Gate", "records": "6294"}, {"rank": "13", "police_station": "Mahadevapura", "records": "6187"}, {"rank": "14", "police_station": "Chikkajala", "records": "5834"}, {"rank": "15", "police_station": "HSR Layout", "records": "5018"}, {"rank": "16", "police_station": "Bellandur", "records": "4964"}, {"rank": "17", "police_station": "High ground", "records": "4951"}, {"rank": "18", "police_station": "Byatarayanapura", "records": "4555"}, {"rank": "19", "police_station": "Electronic City", "records": "4333"}, {"rank": "20", "police_station": "Pulikeshinagar(F.Town)", "records": "4136"}, {"rank": "21", "police_station": "Halasur", "records": "4011"}, {"rank": "22", "police_station": "Jayanagara", "records": "3813"}, {"rank": "23", "police_station": "Chamarajpet", "records": "3795"}, {"rank": "24", "police_station": "Banaswadi", "records": "3759"}, {"rank": "25", "police_station": "Basavanagudi", "records": "3604"}, {"rank": "26", "police_station": "Ashok Nagar", "records": "3524"}, {"rank": "27", "police_station": "Adugodi", "records": "3332"}, {"rank": "28", "police_station": "Cubbon Park", "records": "3255"}, {"rank": "29", "police_station": "Hebbala", "records": "3209"}, {"rank": "30", "police_station": "Wilson Garden", "records": "3108"}, {"rank": "31", "police_station": "Sheshadripuram", "records": "3090"}, {"rank": "32", "police_station": "Mico Layout", "records": "2588"}, {"rank": "33", "police_station": "Yeshwanthpura", "records": "2587"}, {"rank": "34", "police_station": "Yelahanka", "records": "2440"}, {"rank": "35", "police_station": "Hulimavu", "records": "2395"}, {"rank": "36", "police_station": "Whitefield", "records": "2303"}, {"rank": "37", "police_station": "R.T. Nagar", "records": "1736"}, {"rank": "38", "police_station": "J.P. Nagar", "records": "1637"}, {"rank": "39", "police_station": "Madiwala", "records": "1563"}, {"rank": "40", "police_station": "V.V.Puram (C.Pet)", "records": "1556"}, {"rank": "41", "police_station": "Sadashivanagar", "records": "1445"}, {"rank": "42", "police_station": "Kamakshipalya", "records": "1431"}, {"rank": "43", "police_station": "Banashankari", "records": "1202"}, {"rank": "44", "police_station": "Jalahalli", "records": "1160"}, {"rank": "45", "police_station": "Jnanabharathi", "records": "1063"}, {"rank": "46", "police_station": "Peenya", "records": "974"}, {"rank": "47", "police_station": "Devanahalli Airport", "records": "940"}, {"rank": "48", "police_station": "Hennuru", "records": "892"}, {"rank": "49", "police_station": "K.G. Halli", "records": "892"}, {"rank": "50", "police_station": "Thalagattapura", "records": "870"}, {"rank": "51", "police_station": "K.S. Layout", "records": "828"}, {"rank": "52", "police_station": "Chikkabanavara", "records": "785"}, {"rank": "53", "police_station": "Kengeri", "records": "464"}, {"rank": "54", "police_station": "No Police Station", "records": "339"}, {"rank": "55", "police_station": "NULL", "records": "5"}];
+    const timeWindows = [{"rank": "1", "time_window_IST": "10:00-10:59", "records": "32580"}, {"rank": "2", "time_window_IST": "11:00-11:59", "records": "32176"}, {"rank": "3", "time_window_IST": "09:00-09:59", "records": "26996"}, {"rank": "4", "time_window_IST": "08:00-08:59", "records": "25790"}, {"rank": "5", "time_window_IST": "04:00-04:59", "records": "23513"}, {"rank": "6", "time_window_IST": "05:00-05:59", "records": "22193"}, {"rank": "7", "time_window_IST": "03:00-03:59", "records": "21565"}, {"rank": "8", "time_window_IST": "06:00-06:59", "records": "19838"}, {"rank": "9", "time_window_IST": "12:00-12:59", "records": "19689"}, {"rank": "10", "time_window_IST": "07:00-07:59", "records": "19445"}, {"rank": "11", "time_window_IST": "02:00-02:59", "records": "16261"}, {"rank": "12", "time_window_IST": "13:00-13:59", "records": "11546"}, {"rank": "13", "time_window_IST": "01:00-01:59", "records": "11098"}, {"rank": "14", "time_window_IST": "00:00-00:59", "records": "5815"}, {"rank": "15", "time_window_IST": "14:00-14:59", "records": "5634"}, {"rank": "16", "time_window_IST": "15:00-15:59", "records": "1224"}, {"rank": "17", "time_window_IST": "23:00-23:59", "records": "1035"}, {"rank": "18", "time_window_IST": "22:00-22:59", "records": "725"}, {"rank": "19", "time_window_IST": "16:00-16:59", "records": "583"}, {"rank": "20", "time_window_IST": "17:00-17:59", "records": "377"}, {"rank": "21", "time_window_IST": "18:00-18:59", "records": "150"}, {"rank": "22", "time_window_IST": "21:00-21:59", "records": "148"}, {"rank": "23", "time_window_IST": "20:00-20:59", "records": "42"}, {"rank": "24", "time_window_IST": "19:00-19:59", "records": "27"}];
+    const sourceProfile = {"rows": 298450, "cells": 7816};
+
+    const stationFilter = document.getElementById("stationFilter");
+    const bandFilter = document.getElementById("bandFilter");
+    const searchBox = document.getElementById("searchBox");
+    const topLimit = document.getElementById("topLimit");
+    const areaRows = document.getElementById("areaRows");
+    const planRows = document.getElementById("planRows");
+    const shiftRows = document.getElementById("shiftRows");
+    const hotspotMap = document.getElementById("hotspotMap");
+    const insights = document.getElementById("insights");
+
+    function fmt(n) { return Number(n).toLocaleString("en-IN"); }
+    function bandClass(band) { return band.toLowerCase(); }
+    function impactToBand(score) {
+      const value = Number(score);
+      if (value >= 70) return "Critical";
+      if (value >= 62) return "High";
+      if (value >= 54) return "Medium";
+      return "Watch";
+    }
+    function filteredAreas() {
+      const station = stationFilter.value;
+      const band = bandFilter.value;
+      const query = searchBox.value.trim().toLowerCase();
+      const limit = Number(topLimit.value);
+      return areas.filter(row => {
+        const rowBand = impactToBand(row.operational_impact_score_0_100);
+        const text = `${row.primary_police_station} ${row.primary_junction} ${row.representative_location} ${row.top_violations}`.toLowerCase();
+        return (station === "All" || row.primary_police_station === station)
+          && (band === "All" || rowBand === band)
+          && (!query || text.includes(query));
+      }).slice(0, limit);
+    }
+    function renderMetrics(rows) {
+      const records = rows.reduce((sum, row) => sum + Number(row.records), 0);
+      document.getElementById("metricRecords").textContent = fmt(records);
+      document.getElementById("metricAreas").textContent = fmt(rows.length);
+    }
+    function renderTable(rows) {
+      areaRows.innerHTML = rows.map(row => {
+        const band = impactToBand(row.operational_impact_score_0_100);
+        return `<tr>
+          <td>${row.area_rank}</td>
+          <td>${row.primary_police_station}</td>
+          <td><span class="pill ${bandClass(band)}">${row.operational_impact_score_0_100}</span></td>
+          <td>${fmt(row.records)}</td>
+          <td>${row.recommended_time_window_IST}</td>
+          <td>${row.primary_junction}</td>
+          <td>${row.top_violations}</td>
+        </tr>`;
+      }).join("");
+    }
+    function renderPlan(rows) {
+      const allowed = new Set(rows.map(row => row.area_rank));
+      planRows.innerHTML = actionPlan.filter(row => allowed.has(row.area_rank)).map(row => `
+        <tr>
+          <td><span class="pill ${bandClass(row.priority_band)}">${row.priority_band}</span></td>
+          <td>${row.primary_police_station}</td>
+          <td>${row.recommended_time_window_IST}</td>
+          <td>${row.suggested_patrol_units}</td>
+          <td>${row.recommended_intervention}</td>
+          <td>${row.representative_location}</td>
+        </tr>`).join("");
+    }
+    function renderMap(rows) {
+      const selected = rows.length ? rows : areas.slice(0, 10);
+      const lats = selected.map(row => Number(row.center_lat));
+      const lons = selected.map(row => Number(row.center_lon));
+      const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+      const minLon = Math.min(...lons), maxLon = Math.max(...lons);
+      const maxRecords = Math.max(...selected.map(row => Number(row.records)));
+      const points = selected.map(row => {
+        const x = 48 + ((Number(row.center_lon) - minLon) / ((maxLon - minLon) || 1)) * 724;
+        const y = 388 - ((Number(row.center_lat) - minLat) / ((maxLat - minLat) || 1)) * 310;
+        const r = 7 + (Number(row.records) / maxRecords) * 24;
+        const opacity = 0.38 + (Number(row.operational_impact_score_0_100) / 100) * 0.52;
+        return `<g>
+          <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#0f766e" fill-opacity="${opacity.toFixed(2)}" stroke="#073f3a" stroke-width="1.5"></circle>
+          <text x="${(x + r + 4).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-size="11" fill="#17212b">${row.area_rank}. ${row.primary_police_station}</text>
+        </g>`;
+      }).join("");
+      hotspotMap.innerHTML = `<rect x="24" y="24" width="772" height="382" fill="none" stroke="#c9d4dd"></rect>
+        <text x="32" y="436" font-size="12" fill="#617181">Approximate relative spatial view from latitude and longitude. Use GeoJSON for GIS-grade map overlays.</text>${points}`;
+    }
+    function renderInsights(rows) {
+      const top = rows[0] || areas[0];
+      const unitTotal = actionPlan
+        .filter(plan => rows.some(row => row.area_rank === plan.area_rank))
+        .reduce((sum, row) => sum + Number(row.suggested_patrol_units), 0);
+      insights.innerHTML = `
+        <div class="insight"><b>Best first action:</b> deploy to ${top.primary_police_station} around ${top.recommended_time_window_IST} near ${top.primary_junction}.</div>
+        <div class="insight"><b>Operational load:</b> selected areas represent ${fmt(rows.reduce((s, r) => s + Number(r.records), 0))} violation records.</div>
+        <div class="insight"><b>Suggested units:</b> current action-plan filter requires about ${unitTotal} patrol units across visible areas.</div>
+        <div class="insight"><b>Data basis:</b> ${fmt(sourceProfile.rows)} records across ${fmt(sourceProfile.cells)} approximate 100m cells.</div>
+      `;
+    }
+    function renderBars(target, rows, labelKey, valueKey, limit=10) {
+      const selected = rows.slice(0, limit);
+      const maxValue = Math.max(...selected.map(row => Number(row[valueKey])));
+      document.getElementById(target).innerHTML = selected.map(row => {
+        const width = Math.max(3, Number(row[valueKey]) / maxValue * 100);
+        return `<div class="bar-row"><div class="bar-label">${row[labelKey]}</div><div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div><div class="bar-value">${fmt(row[valueKey])}</div></div>`;
+      }).join("");
+    }
+    function renderShiftPlan() {
+      shiftRows.innerHTML = shiftPlan.slice(0, 20).map(row => `
+        <tr>
+          <td>${row.primary_police_station}</td>
+          <td>${row.recommended_time_window_IST}</td>
+          <td>${row.priority_area_count}</td>
+          <td>${fmt(row.covered_records)}</td>
+          <td><span class="pill">${row.suggested_patrol_units}</span></td>
+        </tr>`).join("");
+    }
+    function render() {
+      const rows = filteredAreas();
+      renderMetrics(rows);
+      renderTable(rows);
+      renderPlan(rows);
+      renderMap(rows);
+      renderInsights(rows);
+    }
+    [stationFilter, bandFilter, searchBox, topLimit].forEach(element => element.addEventListener("input", render));
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      stationFilter.value = "All";
+      bandFilter.value = "All";
+      searchBox.value = "";
+      topLimit.value = "15";
+      render();
+    });
+    document.querySelectorAll("[data-view]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-view]").forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+        document.getElementById("mapView").classList.toggle("hidden", button.dataset.view !== "map");
+        document.getElementById("planView").classList.toggle("hidden", button.dataset.view !== "plan");
+        document.getElementById("validationView").classList.toggle("hidden", button.dataset.view !== "validation");
+      });
+    });
+    renderBars("stationBars", stations, "police_station", "records");
+    renderBars("timeBars", timeWindows, "time_window_IST", "records");
+    renderShiftPlan();
+    render();
+  </script>
+</body>
+</html>

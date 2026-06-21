@@ -1,0 +1,682 @@
+{
+  "rows": 298450,
+  "columns": [
+    "id",
+    "latitude",
+    "longitude",
+    "location",
+    "vehicle_number",
+    "vehicle_type",
+    "description",
+    "violation_type",
+    "offence_code",
+    "created_datetime",
+    "closed_datetime",
+    "modified_datetime",
+    "device_id",
+    "created_by_id",
+    "center_code",
+    "police_station",
+    "data_sent_to_scita",
+    "junction_name",
+    "action_taken_timestamp",
+    "data_sent_to_scita_timestamp",
+    "updated_vehicle_number",
+    "updated_vehicle_type",
+    "validation_status",
+    "validation_timestamp"
+  ],
+  "missing_top": [
+    [
+      "description",
+      298450
+    ],
+    [
+      "closed_datetime",
+      298450
+    ],
+    [
+      "action_taken_timestamp",
+      298450
+    ],
+    [
+      "data_sent_to_scita_timestamp",
+      256289
+    ],
+    [
+      "updated_vehicle_number",
+      125254
+    ],
+    [
+      "updated_vehicle_type",
+      125254
+    ],
+    [
+      "validation_status",
+      125254
+    ],
+    [
+      "validation_timestamp",
+      125254
+    ],
+    [
+      "center_code",
+      11260
+    ],
+    [
+      "location",
+      3041
+    ],
+    [
+      "created_by_id",
+      5
+    ],
+    [
+      "police_station",
+      5
+    ],
+    [
+      "junction_name",
+      5
+    ]
+  ],
+  "coordinate_quality": {
+    "bad_or_outside_bengaluru_like_bounds": 0,
+    "unique_approx_100m_cells": 7816,
+    "top_approx_100m_cells": [
+      {
+        "lat_cell": 12.981,
+        "lon_cell": 77.61,
+        "records": 4405
+      },
+      {
+        "lat_cell": 12.964,
+        "lon_cell": 77.577,
+        "records": 3743
+      },
+      {
+        "lat_cell": 12.934,
+        "lon_cell": 77.691,
+        "records": 3343
+      },
+      {
+        "lat_cell": 13.071,
+        "lon_cell": 77.588,
+        "records": 3280
+      },
+      {
+        "lat_cell": 12.977,
+        "lon_cell": 77.576,
+        "records": 3182
+      },
+      {
+        "lat_cell": 12.933,
+        "lon_cell": 77.691,
+        "records": 2375
+      },
+      {
+        "lat_cell": 12.973,
+        "lon_cell": 77.579,
+        "records": 2367
+      },
+      {
+        "lat_cell": 13.035,
+        "lon_cell": 77.589,
+        "records": 2284
+      },
+      {
+        "lat_cell": 12.965,
+        "lon_cell": 77.576,
+        "records": 1933
+      },
+      {
+        "lat_cell": 13.184,
+        "lon_cell": 77.68,
+        "records": 1926
+      },
+      {
+        "lat_cell": 12.977,
+        "lon_cell": 77.577,
+        "records": 1907
+      },
+      {
+        "lat_cell": 12.976,
+        "lon_cell": 77.577,
+        "records": 1795
+      },
+      {
+        "lat_cell": 12.974,
+        "lon_cell": 77.545,
+        "records": 1760
+      },
+      {
+        "lat_cell": 12.984,
+        "lon_cell": 77.603,
+        "records": 1651
+      },
+      {
+        "lat_cell": 12.984,
+        "lon_cell": 77.604,
+        "records": 1628
+      }
+    ]
+  },
+  "top_violation_labels": [
+    [
+      "WRONG PARKING",
+      164977
+    ],
+    [
+      "NO PARKING",
+      139050
+    ],
+    [
+      "PARKING IN A MAIN ROAD",
+      23943
+    ],
+    [
+      "DEFECTIVE NUMBER PLATE",
+      7848
+    ],
+    [
+      "PARKING ON FOOTPATH",
+      3757
+    ],
+    [
+      "PARKING NEAR BUSTOP/SCHOOL/HOSPITAL ETC",
+      2403
+    ],
+    [
+      "DOUBLE PARKING",
+      2037
+    ],
+    [
+      "PARKING NEAR ROAD CROSSING",
+      1687
+    ],
+    [
+      "REFUSE TO GO FOR HIRE",
+      887
+    ],
+    [
+      "PARKING NEAR TRAFFIC LIGHT OR ZEBRA CROSS",
+      525
+    ],
+    [
+      "PARKING OPPOSITE TO ANOTHER PARKED VEHICLE",
+      486
+    ],
+    [
+      "USING BLACK FILM/OTHER MATERIALS",
+      248
+    ],
+    [
+      "PARKING OTHER THAN BUS STOP",
+      242
+    ],
+    [
+      "DEMANDING EXCESS FARE",
+      240
+    ],
+    [
+      "WITHOUT SIDE MIRROR",
+      47
+    ],
+    [
+      "H T V PROHIBITED",
+      31
+    ],
+    [
+      "OBSTRUCTING DRIVER",
+      16
+    ],
+    [
+      "AGAINST ONE WAY/NO ENTRY",
+      9
+    ],
+    [
+      "FAIL TO USE SAFETY BELTS",
+      8
+    ],
+    [
+      "VIOLATING LANE DISIPLINE",
+      5
+    ]
+  ],
+  "top_vehicle_types": [
+    [
+      "SCOOTER",
+      94856
+    ],
+    [
+      "CAR",
+      88870
+    ],
+    [
+      "MOTOR CYCLE",
+      40811
+    ],
+    [
+      "PASSENGER AUTO",
+      37813
+    ],
+    [
+      "MAXI-CAB",
+      11372
+    ],
+    [
+      "LGV",
+      8255
+    ],
+    [
+      "GOODS AUTO",
+      2934
+    ],
+    [
+      "MOPED",
+      2199
+    ],
+    [
+      "PRIVATE BUS",
+      1633
+    ],
+    [
+      "VAN",
+      1466
+    ],
+    [
+      "TEMPO",
+      1368
+    ],
+    [
+      "BUS (BMTC/KSRTC)",
+      1281
+    ],
+    [
+      "HGV",
+      1144
+    ],
+    [
+      "LORRY/GOODS VEHICLE",
+      1122
+    ],
+    [
+      "JEEP",
+      913
+    ],
+    [
+      "OTHERS",
+      895
+    ],
+    [
+      "TOURIST BUS",
+      379
+    ],
+    [
+      "SCHOOL VEHICLE",
+      378
+    ],
+    [
+      "TANKER",
+      260
+    ],
+    [
+      "FACTORY BUS",
+      238
+    ]
+  ],
+  "top_police_stations": [
+    [
+      "Upparpet",
+      34468
+    ],
+    [
+      "Shivajinagar",
+      28044
+    ],
+    [
+      "Malleshwaram",
+      22200
+    ],
+    [
+      "HAL Old Airport",
+      20819
+    ],
+    [
+      "City Market",
+      17646
+    ],
+    [
+      "Vijayanagara",
+      14652
+    ],
+    [
+      "Rajajinagar",
+      10998
+    ],
+    [
+      "Kodigehalli",
+      10916
+    ],
+    [
+      "Magadi Road",
+      8558
+    ],
+    [
+      "Jeevanbheemanagar",
+      6736
+    ],
+    [
+      "K.R. Pura",
+      6546
+    ],
+    [
+      "Halasuru Gate",
+      6294
+    ],
+    [
+      "Mahadevapura",
+      6187
+    ],
+    [
+      "Chikkajala",
+      5834
+    ],
+    [
+      "HSR Layout",
+      5018
+    ],
+    [
+      "Bellandur",
+      4964
+    ],
+    [
+      "High ground",
+      4951
+    ],
+    [
+      "Byatarayanapura",
+      4555
+    ],
+    [
+      "Electronic City",
+      4333
+    ],
+    [
+      "Pulikeshinagar(F.Town)",
+      4136
+    ]
+  ],
+  "validation_status": [
+    [
+      "NULL",
+      125254
+    ],
+    [
+      "approved",
+      115400
+    ],
+    [
+      "rejected",
+      49754
+    ],
+    [
+      "created1",
+      7044
+    ],
+    [
+      "processing",
+      678
+    ],
+    [
+      "duplicate",
+      320
+    ]
+  ],
+  "data_sent_to_scita": [
+    [
+      "TRUE",
+      255893
+    ],
+    [
+      "FALSE",
+      42557
+    ]
+  ],
+  "top_junction_names": [
+    [
+      "No Junction",
+      147880
+    ],
+    [
+      "BTP051 - Safina Plaza Junction",
+      15449
+    ],
+    [
+      "BTP082 - KR Market Junction",
+      11538
+    ],
+    [
+      "BTP040 - Elite Junction",
+      10718
+    ],
+    [
+      "BTP044 - Sagar Theatre Junction",
+      10549
+    ],
+    [
+      "BTP211 - Central Street Junction",
+      5388
+    ],
+    [
+      "BTP058 - Subbanna Junction",
+      5189
+    ],
+    [
+      "BTP027 - Modi Bridge Junction",
+      4584
+    ],
+    [
+      "BTP020 - Hosahalli Metro Station",
+      4101
+    ],
+    [
+      "BTP057 - Anand Rao Junction",
+      3935
+    ],
+    [
+      "BTP080 - NR Road, SP Road Junction",
+      3681
+    ],
+    [
+      "BTP045 - Danvanthri Road Junction",
+      3181
+    ],
+    [
+      "BTP001 - 10th Cross, Dr. Rajkumar Road",
+      2812
+    ],
+    [
+      "BTP083 - AS Char Street, Mysore Road",
+      2778
+    ],
+    [
+      "BTP032 - Windsor Circle",
+      2749
+    ],
+    [
+      "BTP016 - 5th Main Road, RPC Layout",
+      2474
+    ],
+    [
+      "BTP070 - Cholurpalya Junction, Magadi Road",
+      2272
+    ],
+    [
+      "BTP042 - Minsk Square Junction (CTO)",
+      2044
+    ],
+    [
+      "BTP038 - Mysore Bank Junction",
+      2021
+    ],
+    [
+      "BTP023 - Mahalaxmi Layout Entrance",
+      1807
+    ]
+  ],
+  "ist_hour_counts": [
+    [
+      "10:00-10:59",
+      32580
+    ],
+    [
+      "11:00-11:59",
+      32176
+    ],
+    [
+      "09:00-09:59",
+      26996
+    ],
+    [
+      "08:00-08:59",
+      25790
+    ],
+    [
+      "04:00-04:59",
+      23513
+    ],
+    [
+      "05:00-05:59",
+      22193
+    ],
+    [
+      "03:00-03:59",
+      21565
+    ],
+    [
+      "06:00-06:59",
+      19838
+    ],
+    [
+      "12:00-12:59",
+      19689
+    ],
+    [
+      "07:00-07:59",
+      19445
+    ],
+    [
+      "02:00-02:59",
+      16261
+    ],
+    [
+      "13:00-13:59",
+      11546
+    ],
+    [
+      "01:00-01:59",
+      11098
+    ],
+    [
+      "00:00-00:59",
+      5815
+    ],
+    [
+      "14:00-14:59",
+      5634
+    ],
+    [
+      "15:00-15:59",
+      1224
+    ],
+    [
+      "23:00-23:59",
+      1035
+    ],
+    [
+      "22:00-22:59",
+      725
+    ],
+    [
+      "16:00-16:59",
+      583
+    ],
+    [
+      "17:00-17:59",
+      377
+    ],
+    [
+      "18:00-18:59",
+      150
+    ],
+    [
+      "21:00-21:59",
+      148
+    ],
+    [
+      "20:00-20:59",
+      42
+    ],
+    [
+      "19:00-19:59",
+      27
+    ]
+  ],
+  "ist_weekday_counts": [
+    [
+      "Sunday",
+      50162
+    ],
+    [
+      "Saturday",
+      44523
+    ],
+    [
+      "Thursday",
+      43547
+    ],
+    [
+      "Tuesday",
+      42697
+    ],
+    [
+      "Wednesday",
+      41977
+    ],
+    [
+      "Friday",
+      40864
+    ],
+    [
+      "Monday",
+      34680
+    ]
+  ],
+  "ist_month_counts": [
+    [
+      "2023-11",
+      43506
+    ],
+    [
+      "2023-12",
+      63918
+    ],
+    [
+      "2024-01",
+      65479
+    ],
+    [
+      "2024-02",
+      54660
+    ],
+    [
+      "2024-03",
+      55455
+    ],
+    [
+      "2024-04",
+      15432
+    ]
+  ]
+}

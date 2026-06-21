@@ -1,0 +1,31 @@
+{
+  "validation_type": "temporal_holdout",
+  "test_days": 30,
+  "training_records": 244238,
+  "test_records": 54212,
+  "cutoff_date_IST": "2024-03-09",
+  "test_end_date_IST": "2024-04-08",
+  "top_k": {
+    "10": {
+      "precision_at_k": 0.6,
+      "recall_at_k": 0.6,
+      "hit_count": 6,
+      "captured_test_records": 5459,
+      "captured_test_record_share": 0.1007
+    },
+    "20": {
+      "precision_at_k": 0.6,
+      "recall_at_k": 0.6,
+      "hit_count": 12,
+      "captured_test_records": 7912,
+      "captured_test_record_share": 0.1459
+    },
+    "50": {
+      "precision_at_k": 0.72,
+      "recall_at_k": 0.72,
+      "hit_count": 36,
+      "captured_test_records": 13525,
+      "captured_test_record_share": 0.2495
+    }
+  }
+}
