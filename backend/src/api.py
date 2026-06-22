@@ -1,8 +1,10 @@
+import os
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -14,6 +16,17 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 PRODUCTION_DIR = BACKEND_DIR.parent
 FRONTEND_DIR = PRODUCTION_DIR / "frontend"
 REACT_DIST_DIR = FRONTEND_DIR / "dist"
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "")
+
+allowed_origins = [origin.strip() for origin in FRONTEND_ORIGIN.split(",") if origin.strip()]
+if allowed_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allowed_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 if REACT_DIST_DIR.exists():
     app.mount("/assets", StaticFiles(directory=REACT_DIST_DIR / "assets"), name="react-assets")
