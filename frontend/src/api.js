@@ -1,5 +1,9 @@
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
+const withBase = (path) => `${API_BASE_URL}${path}`;
+
 const json = async (path) => {
-  const response = await fetch(path);
+  const response = await fetch(withBase(path));
   if (!response.ok) {
     throw new Error(`${path} failed with ${response.status}`);
   }
