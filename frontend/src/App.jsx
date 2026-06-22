@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, BrainCircuit, Compass, MapPinned } from "lucide-react";
+import { AlertTriangle, BrainCircuit, Gauge, MapPinned } from "lucide-react";
 import { loadDashboardData } from "./api";
 import { AppShell } from "./components/AppShell";
 import { OverviewPage } from "./pages/OverviewPage";
@@ -92,9 +92,12 @@ export function App() {
   const navigation = [
     {
       path: "/",
-      label: "Overview",
-      icon: Compass,
-      description: "City story, top recommendation, and a clean hotspot map.",
+      label: pathname === "/model" ? "Overview" : "Impact View",
+      icon: Gauge,
+      description:
+        pathname === "/model"
+          ? "City story, top recommendation, and a clean hotspot map."
+          : "Parking hotspots, congestion proxy, and enforcement priority.",
     },
     {
       path: "/operations",
@@ -113,7 +116,11 @@ export function App() {
   const quickStats = data
     ? [
         { label: "Hotspot areas", value: data.summary.hotspot_areas, icon: MapPinned },
-        { label: "Actionable deployments", value: data.summary.deploy_count, icon: AlertTriangle },
+        {
+          label: pathname === "/model" ? "Actionable deployments" : "Priority zones",
+          value: data.summary.deploy_count,
+          icon: AlertTriangle,
+        },
         { label: "Model ROC-AUC", value: Number(data.mlMetrics?.roc_auc || 0).toFixed(3), icon: BrainCircuit },
       ]
     : [];

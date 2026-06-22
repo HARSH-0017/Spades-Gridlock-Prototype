@@ -86,7 +86,7 @@ function DispatchQueue({ deployments }) {
         description="Only the top queue is shown here so the decision stays fast and uncluttered."
       />
       <div className="queue-list refined">
-        {deployments.slice(0, 8).map((row, index) => (
+        {deployments.slice(0, 5).map((row, index) => (
           <article className="queue-card refined" key={`${row.area_rank}-${row.primary_police_station}`}>
             <div className="queue-rank">{String(index + 1).padStart(2, "0")}</div>
             <div className="queue-copy">
