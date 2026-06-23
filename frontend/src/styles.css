@@ -84,6 +84,9 @@ p {
   display: grid;
   align-content: start;
   gap: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   border-right: 1px solid var(--line);
   background: rgba(250, 245, 238, 0.88);
   backdrop-filter: blur(22px);
@@ -1268,6 +1271,7 @@ tbody tr:hover {
   .model-route .sidebar-shell {
     position: relative;
     height: auto;
+    overflow: visible;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
@@ -1288,6 +1292,7 @@ tbody tr:hover {
   .sidebar-shell {
     position: relative;
     height: auto;
+    overflow: visible;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }

@@ -46,7 +46,7 @@ function ForecastCard({ row, index }) {
       <p>{row.recommended_time_window_ist} | {row.ml_risk_band}</p>
       <strong>{Math.round(Number(row.ml_risk_probability) * 100)}%</strong>
       <div className="forecast-summary">
-        {row.features?.risk_summary || "Restart the backend to expose the latest saved ML explanations."}
+        {row.features?.risk_summary || "Forecast explanation will appear when model output details are available."}
       </div>
       <div className="driver-stack">
         {(row.features?.risk_drivers || []).slice(0, 3).map((driver) => (
@@ -86,8 +86,8 @@ export function ModelPage({ data, viewModel }) {
               <p>{data.mlMetrics?.model_params?.selected_candidate || "Unavailable"}</p>
             </div>
             <div className="reason-row">
-              <strong>Why this matters</strong>
-              <p>Hackathon judges care that the model is useful, explainable, and clearly better than the baseline.</p>
+              <strong>Prediction target</strong>
+              <p>Ranks next-day hotspot area-hour windows by likely parking-enforcement risk and recurrence strength.</p>
             </div>
             <div className="reason-row">
               <strong>Model note</strong>
@@ -102,8 +102,8 @@ export function ModelPage({ data, viewModel }) {
           <div className="mini-callout">
             <CheckCircle2 size={16} />
             <div>
-              <strong>Winner held up in comparison</strong>
-              <p>The selected model stayed best even after benchmarking against alternate tree-based candidates.</p>
+              <strong>Selected after benchmarking</strong>
+              <p>The current model remained the top-ranked option across the evaluated candidate set.</p>
             </div>
           </div>
         </article>
@@ -111,8 +111,8 @@ export function ModelPage({ data, viewModel }) {
           <div className="mini-callout">
             <Target size={16} />
             <div>
-              <strong>Ranking quality is strong</strong>
-              <p>Precision on the top-ranked hotspot windows is high, which is the metric that matters operationally.</p>
+              <strong>Operational ranking quality</strong>
+              <p>Top-ranked hotspot windows retain high precision for targeted enforcement prioritization.</p>
             </div>
           </div>
         </article>
@@ -120,8 +120,8 @@ export function ModelPage({ data, viewModel }) {
           <div className="mini-callout">
             <BrainCircuit size={16} />
             <div>
-              <strong>Explainability is built in</strong>
-              <p>Each forecast now carries saved drivers instead of being a black-box probability only.</p>
+              <strong>Explainable forecasts</strong>
+              <p>Each prediction includes saved drivers instead of showing only a probability score.</p>
             </div>
           </div>
         </article>
@@ -160,7 +160,7 @@ export function ModelPage({ data, viewModel }) {
         <SectionHeader
           kicker="Top forecasts"
           title="Predictions with explanations"
-          description="This page can double as your hackathon demo script: forecast, confidence, and why it is happening."
+          description="Forecast confidence, risk summary, and supporting drivers for the highest-ranked hotspot windows."
         />
         <div className="forecast-grid">
           {viewModel.topPredictions.slice(0, 6).map((row, index) => (

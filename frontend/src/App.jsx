@@ -92,12 +92,9 @@ export function App() {
   const navigation = [
     {
       path: "/",
-      label: pathname === "/model" ? "Overview" : "Impact View",
+      label: "Overview",
       icon: Gauge,
-      description:
-        pathname === "/model"
-          ? "City story, top recommendation, and a clean hotspot map."
-          : "Parking hotspots, congestion proxy, and enforcement priority.",
+      description: "Parking hotspots, impact proxy, and enforcement priority.",
     },
     {
       path: "/operations",
@@ -116,11 +113,7 @@ export function App() {
   const quickStats = data
     ? [
         { label: "Hotspot areas", value: data.summary.hotspot_areas, icon: MapPinned },
-        {
-          label: pathname === "/model" ? "Actionable deployments" : "Priority zones",
-          value: data.summary.deploy_count,
-          icon: AlertTriangle,
-        },
+        { label: "Actionable deployments", value: data.summary.deploy_count, icon: AlertTriangle },
         { label: "Model ROC-AUC", value: Number(data.mlMetrics?.roc_auc || 0).toFixed(3), icon: BrainCircuit },
       ]
     : [];
