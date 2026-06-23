@@ -1,9 +1,12 @@
 import os
+import subprocess
+import sys
+import threading
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -17,6 +20,7 @@ PRODUCTION_DIR = BACKEND_DIR.parent
 FRONTEND_DIR = PRODUCTION_DIR / "frontend"
 REACT_DIST_DIR = FRONTEND_DIR / "dist"
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "")
+TRAINING_SCRIPT = BACKEND_DIR / "src" / "train_ml_hotspot_model.py"
 
 allowed_origins = [origin.strip() for origin in FRONTEND_ORIGIN.split(",") if origin.strip()]
 if allowed_origins:
@@ -31,6 +35,16 @@ if allowed_origins:
 if REACT_DIST_DIR.exists():
     app.mount("/assets", StaticFiles(directory=REACT_DIST_DIR / "assets"), name="react-assets")
 
+retrain_lock = threading.Lock()
+retrain_status = {
+    "state": "idle",
+    "started_at": None,
+    "finished_at": None,
+    "last_success_at": None,
+    "last_error": "",
+    "last_output": "",
+}
+
 
 def json_ready(value):
     if isinstance(value, Decimal):
@@ -42,6 +56,85 @@ def json_ready(value):
 
 def rows(sql, params=None):
     return [{key: json_ready(value) for key, value in row.items()} for row in fetch_all(sql, params)]
+
+
+def latest_model_snapshot():
+    try:
+        result = rows(
+            """
+            SELECT model_version, trained_at
+            FROM gridlock.ml_model_metrics
+            ORDER BY trained_at DESC
+            LIMIT 1
+            """
+        )
+        return result[0] if result else {}
+    except Exception as exc:
+        return {"lookup_error": str(exc)}
+
+
+def get_retrain_status_payload():
+    with retrain_lock:
+        payload = dict(retrain_status)
+    payload["latest_model"] = latest_model_snapshot()
+    return payload
+
+
+def update_retrain_status(**changes):
+    with retrain_lock:
+        retrain_status.update(changes)
+
+
+def run_retrain_job():
+    started_at = datetime.utcnow().isoformat() + "Z"
+    update_retrain_status(
+        state="running",
+        started_at=started_at,
+        finished_at=None,
+        last_error="",
+        last_output="",
+    )
+
+    try:
+        completed = subprocess.run(
+            [sys.executable, str(TRAINING_SCRIPT)],
+            cwd=BACKEND_DIR,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        finished_at = datetime.utcnow().isoformat() + "Z"
+        output = "\n".join(
+            line
+            for line in [completed.stdout.strip(), completed.stderr.strip()]
+            if line
+        ).strip()
+        output_tail = "\n".join(output.splitlines()[-20:]) if output else ""
+
+        if completed.returncode != 0:
+            update_retrain_status(
+                state="failed",
+                finished_at=finished_at,
+                last_error=output_tail or f"Training exited with code {completed.returncode}.",
+                last_output=output_tail,
+            )
+            return
+
+        update_retrain_status(
+            state="completed",
+            finished_at=finished_at,
+            last_success_at=finished_at,
+            last_error="",
+            last_output=output_tail,
+        )
+    except Exception as exc:
+        finished_at = datetime.utcnow().isoformat() + "Z"
+        update_retrain_status(
+            state="failed",
+            finished_at=finished_at,
+            last_error=str(exc),
+            last_output="",
+        )
 
 
 @app.get("/", include_in_schema=False)
@@ -58,6 +151,38 @@ def dashboard():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/admin/retrain-status")
+def admin_retrain_status():
+    return get_retrain_status_payload()
+
+
+@app.post("/admin/retrain-model")
+def admin_retrain_model():
+    should_start = False
+    with retrain_lock:
+        if retrain_status["state"] in {"starting", "running"}:
+            raise HTTPException(status_code=409, detail="Model retraining is already running.")
+        retrain_status.update(
+            {
+                "state": "starting",
+                "started_at": datetime.utcnow().isoformat() + "Z",
+                "finished_at": None,
+                "last_error": "",
+                "last_output": "",
+            }
+        )
+        should_start = True
+
+    if should_start:
+        worker = threading.Thread(target=run_retrain_job, daemon=True)
+        worker.start()
+
+    return {
+        "message": "Model retraining started.",
+        "status": get_retrain_status_payload(),
+    }
 
 
 @app.get("/summary")

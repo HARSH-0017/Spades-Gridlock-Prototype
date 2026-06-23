@@ -68,9 +68,24 @@ export function App() {
   const [pathname, navigate] = usePathname();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refreshData = async ({ silent = false } = {}) => {
+    if (!silent) setIsRefreshing(true);
+    try {
+      const result = await loadDashboardData();
+      setData(result);
+      setError("");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      if (!silent) setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
+    setIsRefreshing(true);
     loadDashboardData()
       .then((result) => {
         if (!cancelled) {
@@ -80,6 +95,9 @@ export function App() {
       })
       .catch((err) => {
         if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setIsRefreshing(false);
       });
     return () => {
       cancelled = true;
@@ -125,10 +143,16 @@ export function App() {
       navigation={navigation}
       quickStats={quickStats}
       summary={data?.summary}
-      loading={!data && !error}
+      loading={!data && !error && isRefreshing}
       error={error}
     >
-      <Page data={data} viewModel={viewModel} navigate={navigate} />
+      <Page
+        data={data}
+        viewModel={viewModel}
+        navigate={navigate}
+        refreshData={refreshData}
+        isRefreshing={isRefreshing}
+      />
     </AppShell>
   );
 }

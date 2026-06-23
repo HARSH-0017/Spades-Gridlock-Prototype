@@ -10,6 +10,22 @@ const json = async (path) => {
   return response.json();
 };
 
+const requestJson = async (path, options = {}) => {
+  const response = await fetch(withBase(path), {
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.detail || `${path} failed with ${response.status}`);
+  }
+  return payload;
+};
+
 export async function loadDashboardData() {
   const [
     summary,
@@ -50,4 +66,12 @@ export async function loadDashboardData() {
     mlMetrics,
     mlPredictions,
   };
+}
+
+export async function getRetrainStatus() {
+  return json("/admin/retrain-status");
+}
+
+export async function triggerRetrain() {
+  return requestJson("/admin/retrain-model", { method: "POST" });
 }

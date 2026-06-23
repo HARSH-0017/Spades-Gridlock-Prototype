@@ -1,6 +1,6 @@
 # Station Briefing Pack
 
-Target operational date: 2026-06-23 (Tuesday)
+Target operational date: 2026-06-24 (Wednesday)
 
 Use this as a field briefing sheet. Each station receives only areas where deployment or targeted patrol is recommended.
 

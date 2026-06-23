@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { BrainCircuit, CheckCircle2, Sparkles, Target } from "lucide-react";
+import { getRetrainStatus, triggerRetrain } from "../api";
 import { MlMetricGrid, SectionHeader } from "../components/ui";
 import { pct } from "../utils";
 
@@ -63,8 +64,102 @@ function ForecastCard({ row, index }) {
   );
 }
 
-export function ModelPage({ data, viewModel }) {
+function formatTimestamp(value) {
+  if (!value) return "Not available";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function retrainStateLabel(state) {
+  if (state === "running" || state === "starting") return "Running";
+  if (state === "completed") return "Ready";
+  if (state === "failed") return "Needs attention";
+  return "Idle";
+}
+
+export function ModelPage({ data, viewModel, refreshData, isRefreshing }) {
+  const [retrainStatus, setRetrainStatus] = useState(null);
+  const [retrainError, setRetrainError] = useState("");
+  const [isTriggering, setIsTriggering] = useState(false);
+  const syncedSuccessRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadStatus = async () => {
+      try {
+        const status = await getRetrainStatus();
+        if (cancelled) return;
+        setRetrainStatus(status);
+        syncedSuccessRef.current = status.last_success_at || null;
+        setRetrainError("");
+      } catch (error) {
+        if (!cancelled) setRetrainError(error.message);
+      }
+    };
+
+    loadStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const active = retrainStatus?.state === "running" || retrainStatus?.state === "starting";
+    if (!active) return undefined;
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      try {
+        const status = await getRetrainStatus();
+        if (cancelled) return;
+        setRetrainStatus(status);
+        setRetrainError("");
+
+        if (
+          status.state === "completed" &&
+          status.last_success_at &&
+          status.last_success_at !== syncedSuccessRef.current
+        ) {
+          syncedSuccessRef.current = status.last_success_at;
+          await refreshData();
+        }
+      } catch (error) {
+        if (!cancelled) setRetrainError(error.message);
+      }
+    }, 3500);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [refreshData, retrainStatus]);
+
+  const handleRetrain = async () => {
+    try {
+      setIsTriggering(true);
+      setRetrainError("");
+      const result = await triggerRetrain();
+      setRetrainStatus(result.status);
+    } catch (error) {
+      setRetrainError(error.message);
+    } finally {
+      setIsTriggering(false);
+    }
+  };
+
   if (!data) return null;
+
+  const activeRetrain = retrainStatus?.state === "running" || retrainStatus?.state === "starting";
+  const latestModelTime = retrainStatus?.latest_model?.trained_at || data.mlMetrics?.trained_at;
+  const buttonBusy = activeRetrain || isTriggering || isRefreshing;
 
   return (
     <div className="page-stack">
@@ -81,6 +176,19 @@ export function ModelPage({ data, viewModel }) {
 
         <article className="hero-side-panel">
           <div className="reason-list">
+            <div className="reason-row retrain-control">
+              <strong>Manual refresh</strong>
+              <p>Run the saved hotspot-training pipeline again and refresh this page's model outputs when it finishes.</p>
+              <div className="retrain-meta">
+                <span>Status: {retrainStateLabel(retrainStatus?.state)}</span>
+                <span>Last trained: {formatTimestamp(latestModelTime)}</span>
+              </div>
+              <button className="primary-button" onClick={handleRetrain} disabled={buttonBusy}>
+                {buttonBusy ? "Training in progress..." : "Retrain model"}
+              </button>
+              {retrainStatus?.last_error ? <p className="inline-error">{retrainStatus.last_error}</p> : null}
+              {retrainError ? <p className="inline-error">{retrainError}</p> : null}
+            </div>
             <div className="reason-row">
               <strong>Selected candidate</strong>
               <p>{data.mlMetrics?.model_params?.selected_candidate || "Unavailable"}</p>
