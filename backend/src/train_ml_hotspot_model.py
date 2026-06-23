@@ -514,8 +514,11 @@ def build_reference_profile(train_df):
     return {feature: float(train_df[feature].median()) for feature in explain_features}
 
 
-def build_risk_explanation(row, baselines, importance_map):
+def build_risk_explanation(row, baselines, importance_map, target_date):
     drivers = []
+    reference_date = pd.Timestamp(row["event_date"]).date()
+    previous_day = reference_date.isoformat()
+    weekly_reference_day = (reference_date - timedelta(days=7)).isoformat()
 
     def add_count_driver(feature, label, narrative, floor):
         value = float(row[feature])
@@ -569,14 +572,14 @@ def build_risk_explanation(row, baselines, importance_map):
     )
     add_count_driver(
         "lag_1_records",
-        "Activity also appeared yesterday",
-        "Yesterday this same area-hour logged {value} records, versus a baseline of {baseline}.",
+        f"Previous-day recurrence on {previous_day}",
+        f"On {previous_day}, this same area-hour logged {{value}} records, versus a baseline of {{baseline}}.",
         2.0,
     )
     add_count_driver(
         "lag_7_records",
-        "Weekly recurrence is visible",
-        "A week ago this same area-hour logged {value} records, versus a baseline of {baseline}.",
+        f"Weekly recurrence on {weekly_reference_day}",
+        f"On {weekly_reference_day}, this same area-hour logged {{value}} records, versus a baseline of {{baseline}}.",
         2.0,
     )
     add_share_driver(
@@ -630,7 +633,11 @@ def build_risk_explanation(row, baselines, importance_map):
         )
 
     drivers = sorted(drivers, key=lambda item: item["score"], reverse=True)[:3]
-    summary = "High risk because " + "; ".join(driver["label"].lower() for driver in drivers) + "."
+    summary = (
+        f"High risk for {target_date.isoformat()} because "
+        + "; ".join(driver["label"].lower() for driver in drivers)
+        + "."
+    )
     return {
         "summary": summary,
         "drivers": [
@@ -654,11 +661,13 @@ def risk_band(probability):
     return "Watch"
 
 
-def build_prediction_payload(row, feature_names, baselines, importance_rows):
+def build_prediction_payload(row, feature_names, baselines, importance_rows, target_date):
     importance_map = {item["feature"]: max(item["importance_mean"], 0.0) for item in importance_rows}
-    explanation = build_risk_explanation(row, baselines, importance_map)
+    explanation = build_risk_explanation(row, baselines, importance_map, target_date)
     return {
         "model_inputs": {name: float(row[name]) for name in feature_names},
+        "target_date": target_date.isoformat(),
+        "reference_observation_date": pd.Timestamp(row["event_date"]).date().isoformat(),
         "risk_summary": explanation["summary"],
         "risk_drivers": explanation["drivers"],
         "operational_flags": {
@@ -821,7 +830,7 @@ def main():
                         float(row["ml_risk_probability"]),
                         float(row["predicted_next_day_records"]),
                         risk_band(float(row["ml_risk_probability"])),
-                        Json(build_prediction_payload(row, feature_names, reference_profile, importance_rows)),
+                        Json(build_prediction_payload(row, feature_names, reference_profile, importance_rows, target_date)),
                     ],
                 )
         conn.commit()
