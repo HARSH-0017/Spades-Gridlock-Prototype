@@ -70,19 +70,6 @@ export function App() {
   const [error, setError] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const refreshData = async ({ silent = false } = {}) => {
-    if (!silent) setIsRefreshing(true);
-    try {
-      const result = await loadDashboardData();
-      setData(result);
-      setError("");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      if (!silent) setIsRefreshing(false);
-    }
-  };
-
   useEffect(() => {
     let cancelled = false;
     setIsRefreshing(true);
@@ -146,13 +133,7 @@ export function App() {
       loading={!data && !error && isRefreshing}
       error={error}
     >
-      <Page
-        data={data}
-        viewModel={viewModel}
-        navigate={navigate}
-        refreshData={refreshData}
-        isRefreshing={isRefreshing}
-      />
+      <Page data={data} viewModel={viewModel} navigate={navigate} />
     </AppShell>
   );
 }

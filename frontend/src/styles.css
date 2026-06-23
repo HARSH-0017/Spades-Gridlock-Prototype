@@ -485,19 +485,6 @@ p {
   font-size: 13px;
 }
 
-.retrain-control {
-  display: grid;
-  gap: 10px;
-}
-
-.retrain-meta {
-  display: grid;
-  gap: 4px;
-  color: var(--muted);
-  font-family: "Segoe UI", sans-serif;
-  font-size: 12px;
-}
-
 .metric-row,
 .mini-metric-grid {
   display: grid;
@@ -595,13 +582,6 @@ p {
 .ghost-button:disabled {
   cursor: wait;
   opacity: 0.72;
-}
-
-.inline-error {
-  color: var(--red);
-  font-size: 12px;
-  line-height: 1.45;
-  white-space: pre-wrap;
 }
 
 .story-grid {

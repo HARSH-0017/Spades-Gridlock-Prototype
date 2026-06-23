@@ -45,7 +45,6 @@ function ImpactSummary({ leadArea, leadDeployment, leadPrediction, navigate }) {
           <p>{leadPrediction?.features?.risk_summary || "Next-day risk appears after model output is loaded."}</p>
         </div>
       </div>
-
     </section>
   );
 }
