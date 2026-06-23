@@ -27,8 +27,10 @@ function NavLink({ item, active, onNavigate }) {
 }
 
 export function AppShell({ currentPath, navigate, navigation, quickStats, summary, loading, error, children }) {
+  const frameClass = currentPath === "/model" ? "app-frame model-route" : "app-frame";
+
   return (
-    <div className="app-frame">
+    <div className={frameClass}>
       <aside className="sidebar-shell">
         <div className="brand-card">
           <div className="brand-mark">
@@ -78,15 +80,15 @@ export function AppShell({ currentPath, navigate, navigation, quickStats, summar
             <span>Current target date</span>
           </div>
           <strong>{summary?.target_date || "Waiting for backend"}</strong>
-          <p>The workspace is tuned for next-day prioritization, not a generic analytics wall.</p>
+          <p>Target dates help convert hotspot intelligence into next-day enforcement action.</p>
         </div>
       </aside>
 
       <main className="content-shell">
         <header className="topbar">
           <div>
-            <span className="eyebrow">Bengaluru parking enforcement</span>
-            <h2>Operational command workspace</h2>
+            <span className="eyebrow">AI parking intelligence</span>
+            <h2>Parking-induced congestion control</h2>
           </div>
           <div className="topbar-status">
             <div>
