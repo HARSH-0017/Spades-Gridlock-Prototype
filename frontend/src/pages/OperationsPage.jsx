@@ -17,7 +17,7 @@ function FilterCard({ stations, filters, onChange, totalRecords, actionableCount
       <SectionHeader
         kicker="Filters"
         title="Narrow the field view"
-        description="Operations is focused on dispatch decisions, so filters and queue stay together on one page."
+        description="Operations is focused on dispatch decisions."
       />
 
       <div className="filter-form">
